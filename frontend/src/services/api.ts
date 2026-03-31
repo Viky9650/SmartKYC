@@ -85,8 +85,8 @@ export const documentsApi = {
 // ─── Reviews ─────────────────────────────────────────────────────────────────
 
 export const reviewsApi = {
-  getQueue: () =>
-    request<any[]>('GET', '/api/reviews/queue'),
+  getQueue: (sort: 'date' | 'risk' = 'date') =>
+    request<any[]>('GET', `/api/reviews/queue?sort=${sort}`),
 
   submit: (data: {
     case_id: string

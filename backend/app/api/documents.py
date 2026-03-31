@@ -54,20 +54,11 @@ async def upload_document(
     schema_key = extraction.get("document_schema", "GENERIC_DOCUMENT")
     schema = DOCUMENT_SCHEMAS.get(schema_key, {})
 
-    # Store the FULL extraction object so dashboard/detail pages can read
-    # full_name, document_type, country, issuer, overall_confidence, extraction_method
+    # Ensure correct structure for frontend
     extracted_data = {
-        "fields":              extraction.get("fields", {}),
-        "confidences":         extraction.get("confidences", {}),
-        "document_schema":     schema_key,
-        "document_type":       extraction.get("document_type", schema.get("document_type", "")),
-        "country":             extraction.get("country", schema.get("country", "")),
-        "issuer":              extraction.get("issuer", schema.get("issuer", "")),
-        "full_name":           extraction.get("full_name", ""),
-        "overall_confidence":  extraction.get("overall_confidence", 0),
-        "extraction_method":   extraction.get("extraction_method", ""),
-        "document_quality":    extraction.get("document_quality", ""),
-        "notes":               extraction.get("notes", ""),
+        "fields": extraction.get("fields", {}),
+        "confidences": extraction.get("confidences", {}),
+        "document_schema": schema_key,
     }
 
     doc = Document(
@@ -79,7 +70,7 @@ async def upload_document(
         file_size=len(content),
         mime_type=file.content_type,
         document_type=schema_key,
-        country_of_issue=extraction.get("country", schema.get("country")),
+        country_of_issue=schema.get("country"),
         extraction_status="done",
         extracted_data=extracted_data,
     )
@@ -106,12 +97,11 @@ async def upload_document(
     await db.refresh(doc)
 
     return {
-        "document_id":   doc.id,
+        "document_id": doc.id,
         "document_type": doc.document_type,
         "extracted_data": doc.extracted_data,
-        "extraction":    extracted_data,   # NewCasePage reads result.extraction
-        "filename":      doc.original_filename,
-        "file_size":     doc.file_size,
+        "filename": doc.original_filename,
+        "file_size": doc.file_size,
     }
 
 
@@ -133,3 +123,48 @@ async def get_extractions(document_id: str, db: AsyncSession = Depends(get_db)):
         }
         for e in extractions
     ]
+
+
+@router.post("/extract-preview")
+async def extract_preview(
+    file: UploadFile = File(...),
+    document_type: Optional[str] = Form(None),
+):
+    """
+    Extract fields from a document WITHOUT creating a case or DB record.
+    Used by the chat intake to get real field data before calling the LLM,
+    so the LLM uses the actual extracted name instead of a placeholder.
+    """
+    import tempfile, os
+
+    ext      = os.path.splitext(file.filename or "file.jpg")[1] or ".jpg"
+    content  = await file.read()
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
+        tmp.write(content)
+        tmp_path = tmp.name
+
+    try:
+        extraction = await extract_document(
+            file_path=tmp_path,
+            filename=file.filename or f"document{ext}",
+            document_type_hint=document_type,
+        )
+    finally:
+        os.unlink(tmp_path)
+
+    # Return in the same shape as /upload so the frontend can reuse the type
+    schema_key = extraction.get("document_schema", "GENERIC_DOCUMENT")
+    return {
+        "document_type": schema_key,
+        "extracted_data": {
+            "fields":              extraction.get("fields", {}),
+            "confidences":         extraction.get("confidences", {}),
+            "overall_confidence":  extraction.get("overall_confidence", 0),
+            "full_name":           extraction.get("full_name", ""),
+            "document_schema":     schema_key,
+            "extraction_method":   extraction.get("extraction_method", ""),
+            "document_type":       extraction.get("document_type", ""),
+            "country":             extraction.get("country", ""),
+        },
+    }

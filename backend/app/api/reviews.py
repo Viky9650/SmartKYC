@@ -61,12 +61,20 @@ async def submit_review(data: ReviewCreate, db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/queue")
-async def get_review_queue(db: AsyncSession = Depends(get_db)):
-    """Get cases pending human review."""
+async def get_review_queue(
+    sort: str = "date",
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Get cases pending human review.
+    sort=date  -> newest first (default)
+    sort=risk  -> highest risk score first
+    """
+    order = desc(Case.created_at) if sort == "date" else desc(Case.risk_score)
     result = await db.execute(
         select(Case)
         .where(Case.status.in_(["review", "on_hold", "escalated", "pending_documents"]))
-        .order_by(desc(Case.risk_score))
+        .order_by(order)
     )
     cases = result.scalars().all()
     return [

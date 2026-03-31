@@ -1,9 +1,11 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { reviewsApi } from '../../services/api'
 
 export default function Layout() {
   const [queueCount, setQueueCount] = useState(0)
+  const location = useLocation()
+  const isChatPage = location.pathname === '/cases/chat'
 
   useEffect(() => {
     reviewsApi.getQueue().then(q => setQueueCount(q.length)).catch(() => {})
@@ -14,11 +16,12 @@ export default function Layout() {
   }, [])
 
   const navItems = [
-    { to: '/dashboard',  label: 'Dashboard',     icon: '◈' },
-    { to: '/cases/new',  label: 'New Case',       icon: '＋' },
-    { to: '/review',     label: 'Review Queue',   icon: '⬡', badge: queueCount },
-    { to: '/cases',      label: 'All Cases',      icon: '☰' },
-    { to: '/authorities',label: 'Authorities',    icon: '⊕' },
+    { to: '/dashboard',   label: 'Dashboard',     icon: '◈' },
+    { to: '/cases/chat',  label: 'Chat Intake',   icon: '◎', highlight: true },
+    { to: '/cases/new',   label: 'Form Intake',   icon: '＋' },
+    { to: '/review',      label: 'Review Queue',  icon: '⬡', badge: queueCount },
+    { to: '/cases',       label: 'All Cases',     icon: '☰' },
+    { to: '/authorities', label: 'Authorities',   icon: '⊕' },
   ]
 
   return (
@@ -70,20 +73,46 @@ export default function Layout() {
               key={item.to}
               to={item.to}
               className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
-              style={{ marginBottom: 2, textDecoration: 'none' }}
+              style={({ isActive }) => ({
+                marginBottom: 2,
+                textDecoration: 'none',
+                ...((item as any).highlight && !isActive ? {
+                  background: 'linear-gradient(135deg, #dce8fc55, #ede9fe33)',
+                  border: '1px solid #bdd0f855',
+                  borderRadius: 8,
+                } : {}),
+              })}
             >
-              <span style={{ fontSize: 12, width: 20, textAlign: 'center', opacity: 0.5, flexShrink: 0 }}>
+              <span style={{
+                fontSize: 12, width: 20, textAlign: 'center', flexShrink: 0,
+                opacity: (item as any).highlight ? 1 : 0.5,
+                color: (item as any).highlight ? '#4a7fe8' : 'inherit',
+              }}>
                 {item.icon}
               </span>
-              <span style={{ flex: 1 }}>{item.label}</span>
-              {!!item.badge && (
+              <span style={{
+                flex: 1,
+                color: (item as any).highlight ? '#4a7fe8' : 'inherit',
+                fontWeight: (item as any).highlight ? 600 : 'inherit',
+              }}>{item.label}</span>
+              {!!(item as any).badge && (
                 <span style={{
                   background: '#fee2e2', color: '#b91c1c',
                   fontSize: 10, fontWeight: 700,
                   padding: '1px 6px', borderRadius: 10,
                   fontFamily: 'JetBrains Mono,monospace',
                   border: '1px solid #fecaca',
-                }}>{item.badge}</span>
+                }}>{(item as any).badge}</span>
+              )}
+              {(item as any).highlight && (
+                <span style={{
+                  fontSize: 9, fontWeight: 700,
+                  padding: '1px 5px', borderRadius: 4,
+                  background: '#dce8fc', color: '#4a7fe8',
+                  fontFamily: 'JetBrains Mono,monospace',
+                  border: '1px solid #bdd0f8',
+                  letterSpacing: '0.05em',
+                }}>AI</span>
               )}
             </NavLink>
           ))}
@@ -113,7 +142,13 @@ export default function Layout() {
       </aside>
 
       {/* ── Main ────────────────────────────────────────────────────── */}
-      <main style={{ flex: 1, overflowY: 'auto', background: '#f4f6fb' }}>
+      <main style={{
+        flex: 1,
+        overflowY: isChatPage ? 'hidden' : 'auto',
+        background: '#f4f6fb',
+        display: 'flex',
+        flexDirection: 'column',
+      }}>
         <Outlet />
       </main>
     </div>

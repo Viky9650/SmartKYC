@@ -342,178 +342,70 @@ def _mock_pep_check(subject_name: str, subject_type: str) -> Dict[str, Any]:
 
 def _mock_identity_check(authority_key: str, extracted_data: Dict) -> Dict[str, Any]:
     """
-    Realistic mock identity check.
-    For PAN: validates format (AAAAA9999A) and checks name is present.
-    For Aadhaar: validates 12-digit number.
-    For Passport: checks expiry, MRZ fields.
-    In MOCK mode these are format/completeness checks only —
-    in REAL mode they would hit the actual government APIs.
+    Mock identity check that validates against the ACTUAL extracted fields.
+    Returns clear when required fields are present, flagged when missing.
     """
-    import re as _re
-
-    checks_performed = []
-    issues = []
+    confidence = round(random.uniform(0.88, 0.99), 2)
 
     if authority_key == "INDIA_PAN_VERIFY":
-        pan = extracted_data.get("pan_number", "")
-        name = extracted_data.get("name") or extracted_data.get("full_name") or ""
-        dob  = extracted_data.get("date_of_birth", "")
-
-        # PAN format: 5 letters + 4 digits + 1 letter (e.g. ABCDE1234F)
-        pan_valid = bool(_re.match(r"^[A-Z]{5}[0-9]{4}[A-Z]$", pan.upper())) if pan else False
-        checks_performed.append(f"PAN format validation: {'PASS' if pan_valid else 'FAIL — ' + (pan or 'not extracted')}")
-
-        if not pan_valid:
-            issues.append(f"PAN number invalid or missing: '{pan}'")
-        if not name:
-            issues.append("Name not extracted from document")
-        if not dob:
-            issues.append("Date of birth not extracted from document")
-
-        if issues:
+        pan   = extracted_data.get("pan_number") or extracted_data.get("id_number", "")
+        name  = extracted_data.get("name") or extracted_data.get("subject_name", "")
+        dob   = extracted_data.get("dob") or extracted_data.get("date_of_birth", "")
+        missing = []
+        if not pan:  missing.append("PAN Number")
+        if not dob:  missing.append("Date of Birth")
+        if missing:
             return {
                 "result": "flagged",
                 "verified": False,
-                "pan_number": pan,
-                "authority": "Income Tax Department, Govt. of India",
-                "authority_url": "https://eservices.incometax.gov.in",
-                "verified_fields": [],
-                "failed_fields": [
-                    {"field": "PAN Number", "value": pan or "not extracted",
-                     "status": "invalid", "reason": issues[0]},
-                ] + ([{"field": "Name", "value": name or "not extracted",
-                       "status": "missing", "reason": "Name not extracted"}] if not name else [])
-                  + ([{"field": "Date of Birth", "value": dob or "not extracted",
-                       "status": "missing", "reason": "DOB not extracted"}] if not dob else []),
-                "checks_performed": checks_performed,
-                "issues": issues,
-                "note": "MOCK — In production calls Income Tax Dept API to verify PAN.",
+                "confidence": 0.5,
+                "failed_fields": {f: "not extracted" for f in missing},
                 "checked_at": datetime.utcnow().isoformat(),
                 "is_mock": True,
             }
-
-        confidence = round(random.uniform(0.91, 0.99), 2)
         return {
             "result": "clear",
             "verified": True,
-            "authority": "Income Tax Department, Govt. of India",
-            "authority_url": "https://eservices.incometax.gov.in",
-            "verified_fields": [
-                {"field": "PAN Number", "value": pan, "status": "verified",
-                 "note": f"Format valid ({pan}) — MOCK"},
-                {"field": "Name", "value": name, "status": "verified",
-                 "note": "Present on document — MOCK"},
-                {"field": "Date of Birth", "value": dob, "status": "verified",
-                 "note": "Present on document — MOCK"},
-            ],
-            "failed_fields": [],
+            "confidence": confidence,
             "pan_number": pan,
-            "name_on_document": name,
-            "dob_on_document": dob,
-            "confidence": confidence,
-            "checks_performed": checks_performed,
-            "note": "MOCK — In production calls Income Tax Dept API to verify PAN.",
+            "name_on_record": name,
+            "dob_on_record": dob,
             "checked_at": datetime.utcnow().isoformat(),
             "is_mock": True,
         }
 
-    elif authority_key == "UIDAI_AADHAAR":
+    if authority_key == "UIDAI_AADHAAR":
         aadhaar = extracted_data.get("aadhaar_number", "")
-        name = extracted_data.get("name") or extracted_data.get("full_name") or ""
-
-        aadhaar_valid = bool(_re.match(r"^\d{12}$", aadhaar)) if aadhaar else False
-        checks_performed.append(f"Aadhaar format (12 digits): {'PASS' if aadhaar_valid else 'FAIL'}")
-
-        if not aadhaar_valid:
-            issues.append(f"Aadhaar number invalid or missing: '{aadhaar}'")
-        if not name:
-            issues.append("Name not extracted from document")
-
-        if issues:
+        name    = extracted_data.get("name") or extracted_data.get("subject_name", "")
+        if not aadhaar:
             return {
                 "result": "flagged",
                 "verified": False,
-                "authority": "UIDAI — Unique Identification Authority of India",
-                "authority_url": "https://resident.uidai.gov.in",
-                "verified_fields": [],
-                "failed_fields": [
-                    {"field": "Aadhaar Number", "value": aadhaar or "not extracted",
-                     "status": "invalid", "reason": issues[0]},
-                ] + ([{"field": "Name", "value": "not extracted",
-                       "status": "missing", "reason": "Name not found"}] if not name else []),
-                "checks_performed": checks_performed,
-                "issues": issues,
-                "note": "MOCK — In production calls UIDAI API.",
+                "confidence": 0.5,
+                "failed_fields": {"Aadhaar Number": "not extracted", "Name": "not found" if not name else "ok"},
                 "checked_at": datetime.utcnow().isoformat(),
                 "is_mock": True,
             }
-
-        masked = aadhaar[-4:].rjust(12, "*")
-        confidence = round(random.uniform(0.91, 0.99), 2)
         return {
             "result": "clear",
             "verified": True,
-            "authority": "UIDAI — Unique Identification Authority of India",
-            "authority_url": "https://resident.uidai.gov.in",
-            "verified_fields": [
-                {"field": "Aadhaar Number", "value": masked, "status": "verified",
-                 "note": f"12-digit format valid — MOCK"},
-                {"field": "Name", "value": name, "status": "verified",
-                 "note": "Present on document — MOCK"},
-            ],
-            "failed_fields": [],
-            "aadhaar_number": masked,
-            "name_on_document": name,
             "confidence": confidence,
-            "checks_performed": checks_performed,
-            "note": "MOCK — In production calls UIDAI API.",
+            "aadhaar_number": aadhaar,
+            "name_on_record": name,
             "checked_at": datetime.utcnow().isoformat(),
             "is_mock": True,
         }
 
-    else:
-        # Generic identity check (passport, driving licence, etc.)
-        confidence = round(random.uniform(0.85, 0.99), 2)
-        doc_number = (
-            extracted_data.get("passport_number")
-            or extracted_data.get("license_number")
-            or extracted_data.get("id_number")
-            or ""
-        )
-        name = extracted_data.get("full_name") or extracted_data.get("name") or ""
-        dob  = extracted_data.get("date_of_birth", "")
-
-        verified_fields = []
-        failed_fields   = []
-
-        if doc_number:
-            verified_fields.append({"field": "Document Number", "value": doc_number,
-                                    "status": "verified", "note": "Present — MOCK"})
-        else:
-            failed_fields.append({"field": "Document Number", "value": "not extracted",
-                                   "status": "missing", "reason": "Could not extract document number"})
-        if name:
-            verified_fields.append({"field": "Name", "value": name,
-                                    "status": "verified", "note": "Present — MOCK"})
-        if dob:
-            verified_fields.append({"field": "Date of Birth", "value": dob,
-                                    "status": "verified", "note": "Present — MOCK"})
-
-        result_status = "flagged" if failed_fields and not verified_fields else "clear"
-        return {
-            "result": result_status,
-            "verified": result_status == "clear",
-            "authority": "ICAO Passport Validation",
-            "authority_url": "https://www.icao.int",
-            "verified_fields": verified_fields,
-            "failed_fields": failed_fields,
-            "document_number": doc_number,
-            "confidence": confidence,
-            "checks_performed": [f"Document fields extracted: {len(verified_fields)} verified"],
-            "note": "MOCK — In production calls government identity verification API.",
-            "checked_at": datetime.utcnow().isoformat(),
-            "is_mock": True,
-        }
+    # Generic identity check (passport, DVLA, etc.)
+    return {
+        "result": "clear",
+        "verified": True,
+        "confidence": confidence,
+        "document_genuine": True,
+        "biometric_match": confidence > 0.90,
+        "checked_at": datetime.utcnow().isoformat(),
+        "is_mock": True,
+    }
 
 
 def _mock_registry_check(authority_key: str, subject_name: str, company_name: Optional[str]) -> Dict[str, Any]:

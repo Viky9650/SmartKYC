@@ -46,3 +46,15 @@ app.include_router(authorities.router, prefix="/api/authorities", tags=["authori
 @app.get("/health")
 async def health():
     return {"status": "ok", "service": "SmartKYC"}
+
+
+@app.get("/api/config")
+async def get_frontend_config():
+    """
+    Exposes Gemini key + model to the frontend chat component.
+    Keeps everything in one .env — no VITE_ duplication needed.
+    """
+    return {
+        "gemini_api_key": settings.GEMINI_API_KEY,
+        "gemini_model":   settings.GEMINI_MODEL,
+    }
