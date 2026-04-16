@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SmartKYC — Complete System Flowchart</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0b1220;
+      color: #e2e8f0;
+      padding: 40px 24px 60px;
+    }
+
+    h1 { text-align: center; font-size: 22px; font-weight: 800; color: #f0f6ff; margin-bottom: 4px; }
+    .subtitle { text-align: center; font-size: 13px; color: #475569; margin-bottom: 48px; }
+
+    /* ─── Layout ─────────────────────────────── */
+    .flow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    /* ─── Section headers ────────────────────── */
+    .phase {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #475569;
+      text-align: center;
+      margin: 28px 0 8px;
+    }
+
+    /* ─── Nodes ──────────────────────────────── */
+    .node {
+      border-radius: 12px;
+      padding: 13px 20px;
+      width: 100%;
+      max-width: 620px;
+      text-align: center;
+      position: relative;
+    }
+    .node-tag {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      opacity: 0.7;
+      margin-bottom: 3px;
+    }
+    .node-title { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+    .node-sub   { font-size: 12px; opacity: 0.75; line-height: 1.55; }
+
+    .node-blue   { background:#1a2f55; border:2px solid #3b82f6; }
+    .node-blue   .node-tag   { color:#60a5fa; }
+    .node-blue   .node-title { color:#bfdbfe; }
+
+    .node-indigo { background:#1e1f4a; border:2px solid #6366f1; }
+    .node-indigo .node-tag   { color:#a5b4fc; }
+    .node-indigo .node-title { color:#e0e7ff; }
+
+    .node-purple { background:#2a1650; border:2px solid #a855f7; }
+    .node-purple .node-tag   { color:#d8b4fe; }
+    .node-purple .node-title { color:#ede9fe; }
+
+    .node-teal   { background:#0d2d2a; border:2px solid #14b8a6; }
+    .node-teal   .node-tag   { color:#5eead4; }
+    .node-teal   .node-title { color:#ccfbf1; }
+
+    .node-amber  { background:#2d1f08; border:2px solid #f59e0b; }
+    .node-amber  .node-tag   { color:#fcd34d; }
+    .node-amber  .node-title { color:#fef3c7; }
+
+    .node-red    { background:#2d0d0d; border:2px solid #ef4444; }
+    .node-red    .node-tag   { color:#fca5a5; }
+    .node-red    .node-title { color:#fee2e2; }
+
+    .node-green  { background:#0d2a18; border:2px solid #22c55e; }
+    .node-green  .node-tag   { color:#86efac; }
+    .node-green  .node-title { color:#bbf7d0; }
+
+    .node-slate  { background:#141d2a; border:2px solid #475569; }
+    .node-slate  .node-tag   { color:#94a3b8; }
+    .node-slate  .node-title { color:#cbd5e1; }
+
+    /* ─── Arrows ─────────────────────────────── */
+    .arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .a-line { width: 2px; background: #1e3a5a; }
+    .a-head {
+      width: 0; height: 0;
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-top: 9px solid #1e3a5a;
+    }
+    .a-label {
+      font-size: 10px; font-weight: 700;
+      color: #475569; background: #0b1220;
+      padding: 0 8px; margin: -1px 0;
+      letter-spacing: 0.5px;
+    }
+
+    /* ─── Decision diamond ───────────────────── */
+    .diamond-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 620px;
+    }
+    .diamond {
+      background: #0d2d1a;
+      border: 2px solid #22c55e;
+      border-radius: 8px;
+      padding: 11px 24px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #bbf7d0;
+      text-align: center;
+      transform: skewX(-6deg);
+      width: 100%;
+      max-width: 420px;
+    }
+    .diamond span { display: inline-block; transform: skewX(6deg); }
+
+    /* ─── Branch row ─────────────────────────── */
+    .branch-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      width: 100%;
+      max-width: 1000px;
+      gap: 20px;
+    }
+    .branch-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      max-width: 470px;
+    }
+    .branch-badge {
+      font-size: 10px; font-weight: 700;
+      padding: 3px 12px; border-radius: 20px;
+      letter-spacing: 0.5px; margin-bottom: 4px;
+    }
+    .badge-yes { background:#14532d33; color:#86efac; border:1px solid #22c55e; }
+    .badge-no  { background:#7f1d1d33; color:#fca5a5; border:1px solid #ef4444; }
+    .badge-uk  { background:#1e3a5f33; color:#93c5fd; border:1px solid #3b82f6; }
+
+    /* ─── Agent grid ─────────────────────────── */
+    .agent-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      width: 100%;
+      max-width: 820px;
+      margin: 0 auto;
+    }
+    .agent-box {
+      border-radius: 10px;
+      padding: 10px 12px;
+      text-align: center;
+    }
+    .agent-box .tier {
+      font-size: 9px; font-weight: 800;
+      letter-spacing: 1px; text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    .agent-box .name { font-size: 12px; font-weight: 700; margin-bottom: 3px; }
+    .agent-box .weight { font-size: 10px; opacity: 0.7; }
+
+    .ag-mandatory { background:#1a2f1a; border:2px solid #22c55e; }
+    .ag-mandatory .tier  { color:#86efac; }
+    .ag-mandatory .name  { color:#bbf7d0; }
+    .ag-mandatory .weight{ color:#6ee7b7; }
+
+    .ag-conditional { background:#1a2540; border:2px solid #60a5fa; }
+    .ag-conditional .tier  { color:#93c5fd; }
+    .ag-conditional .name  { color:#bfdbfe; }
+    .ag-conditional .weight{ color:#7dd3fc; }
+
+    .ag-optional { background:#2a1650; border:2px solid #a855f7; }
+    .ag-optional .tier  { color:#d8b4fe; }
+    .ag-optional .name  { color:#ede9fe; }
+    .ag-optional .weight{ color:#c4b5fd; }
+
+    /* ─── Inline info box ────────────────────── */
+    .info-box {
+      background:#141d2e; border:1px solid #1e3a5a;
+      border-radius: 8px; padding: 10px 16px;
+      font-size: 11px; color: #94a3b8;
+      max-width: 620px; width: 100%;
+      text-align: center; line-height: 1.6;
+    }
+    .info-box b { color: #cbd5e1; }
+
+    /* ─── Outcome row ────────────────────────── */
+    .outcome-row {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      width: 100%;
+      max-width: 820px;
+      flex-wrap: wrap;
+    }
+    .outcome-box {
+      flex: 1; min-width: 140px; max-width: 200px;
+      border-radius: 10px;
+      padding: 12px 14px;
+      text-align: center;
+    }
+    .outcome-box .icon { font-size: 20px; margin-bottom: 5px; }
+    .outcome-box .label { font-size: 12px; font-weight: 700; margin-bottom: 3px; }
+    .outcome-box .desc  { font-size: 11px; opacity: 0.7; line-height: 1.4; }
+
+    .oc-green  { background:#0d2a18; border:2px solid #22c55e; }
+    .oc-green  .label { color:#86efac; }
+    .oc-red    { background:#2d0d0d; border:2px solid #ef4444; }
+    .oc-red    .label { color:#fca5a5; }
+    .oc-amber  { background:#2d1f08; border:2px solid #f59e0b; }
+    .oc-amber  .label { color:#fcd34d; }
+    .oc-blue   { background:#1a2f55; border:2px solid #3b82f6; }
+    .oc-blue   .label { color:#93c5fd; }
+
+    /* ─── Weight bar ─────────────────────────── */
+    .weight-row {
+      display:flex; gap:8px; align-items:center;
+      font-size: 11px;
+    }
+    .wbar { height:6px; border-radius:3px; display:inline-block; }
+  </style>
+</head>
+<body>
+
+<h1>SmartKYC — Complete System Flowchart</h1>
+<p class="subtitle">End-to-end flow from case creation to compliance decision</p>
+
+<div class="flow">
+
+  <!-- ══════════════════════════════════════════ -->
+  <div class="phase">Phase 1 — Case Intake</div>
+
+  <div class="node node-blue">
+    <div class="node-tag">Frontend · NewCasePage</div>
+    <div class="node-title">Compliance Officer Creates Case</div>
+    <div class="node-sub">POST /api/cases/ · subject_name · subject_type · nationality · date_of_birth · notes<br>
+    Case saved to DB · status = <b style="color:#60a5fa">pending</b> · risk_score = 0 · case_number assigned</div>
+  </div>
+
+  <div class="arrow"><div class="a-line" style="height:20px"></div><div class="a-head"></div></div>
+
+  <div class="node node-blue">
+    <div class="node-tag">Frontend · CaseDetailPage — DocumentUpload</div>
+    <div class="node-title">Upload Identity Document</div>
+    <div class="node-sub">POST /api/documents/upload/{case_id} · JPEG / PNG / WebP / TIFF / PDF accepted<br>
+    File saved to disk with UUID filename · document_service.extract_document() called immediately</div>
+  </div>
+
+  <div class="arrow"><div class="a-line" style="height:20px"></div><div class="a-head"></div></div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <div class="phase">Phase 2 — Document Extraction</div>
+
+  <div class="node node-indigo">
+    <div class="node-tag">document_service.py — Step 1</div>
+    <div class="node-title">Detect Document Type + Read File</div>
+    <div class="node-sub">Filename keyword patterns → schema key (IN_AADHAAR · RU_PASSPORT · GB_PASSPORT · 19 schemas)<br>
+    _read_file() → raw bytes + MIME type</div>
+  </div>
+
+  <div class="arrow"><div class="a-line" style="height:16px"></div><div class="a-head"></div></div>
+
+  <div class="diamond-wrap">
+    <div class="diamond"><span>Is the file a PDF?</span></div>
+  </div>
+
+  <div class="branch-row" style="margin-top:4px">
+    <div class="branch-col">
+      <div class="arrow"><div class="a-line" style="height:12px"></div></div>
+      <span class="branch-badge badge-yes">YES</span>
+      <div class="arrow"><div class="a-line" style="height:10px"></div><div class="a-head"></div></div>
+      <div class="node node-indigo" style="max-width:100%">
+        <div class="node-tag">PDF Pre-processing</div>
+        <div class="node-title">pdfminer text extract + pdf2image render</div>
+        <div class="node-sub">pdfminer → text from searchable PDFs<br>pdf2image → page 1 at 200 DPI → PNG for Vision</div>
+      </div>
+    </div>
+    <div class="branch-col">
+      <div class="arrow"><div class="a-line" style="height:12px"></div></div>
+      <span class="branch-badge badge-no">NO</span>
+      <div class="arrow"><div class="a-line" style="height:10px"></div><div class="a-head"></div></div>
+      <div class="node node-indigo" style="max-width:100%">
+        <div class="node-tag">Image</div>
+        <div class="node-title">Use raw image bytes directly</div>
+        <div class="node-sub">JPEG / PNG / WebP / TIFF<br>passed straight to Vision API</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow" style="margin-top:4px"><div class="a-line" style="height:16px"></div><div class="a-head"></div></div>
+
+  <div class="node node-purple">
+    <div class="node-tag">document_service.py — Step 2 · Primary Path</div>
+    <div class="node-title">Gemini Vision API</div>
+    <div class="node-sub">Image + schema-aware prompt → structured JSON · fields + per-field confidence + MRZ lines + quality<br>
+    Truncated JSON → partial recovery parser (regex salvage of fields block)</div>
+  </div>
+
+  <div class="arrow"><div class="a-line" style="height:16px"></div><div class="a-head"></div></div>
+
+  <div class="diamond-wrap">
+    <div class="diamond"><span>Vision returned fields?</span></div>
+  </div>
+
+  <div class="branch-row" style="margin-top:4px">
+    <div class="branch-col">
+      <div class="arrow"><div class="a-line" style="height:12px"></div></div>
+      <span class="branch-badge badge-yes">YES — Merge MRZ</span>
+      <div class="arrow"><div class="a-line" style="height:10px"></div><div class="a-head"></div></div>
+      <div class="node node-teal" style="max-width:100%">
+        <div class="node-tag">Step 2a · Supplement</div>
+        <div class="node-title">MRZ Parser (ICAO TD3) on Vision's MRZ lines</div>
+        <div class="node-sub">Merge MRZ fields into Vision output at conf 0.97<br>
+        surname · given names · DOB · nationality · expiry · doc number · sex</div>
+      </div>
+    </div>
+    <div class="branch-col">
+      <div class="arrow"><div class="a-line" style="height:12px"></div></div>
+      <span class="branch-badge badge-no">NO — OCR Fallback</span>
+      <div class="arrow"><div class="a-line" style="height:10px"></div><div class="a-head"></div></div>
+      <div class="node node-amber" style="max-width:100%">
+        <div class="node-tag">Step 3 · Fallback</div>
+        <div class="node-title">Tesseract OCR</div>
+        <div class="node-sub">Greyscale + sharpen · PSM 3/6/4 passes<br>+ MRZ whitelist pass (A-Z 0-9 &lt;)</div>
+      </div>
+      <div class="arrow"><div class="a-line" style="height:10px"></div><div class="a-head"></div></div>
+      <div class="node node-teal" style="max-width:100%">
+        <div class="node-tag">Step 4</div>
+        <div class="node-title">MRZ Parser on OCR text</div>
+        <div class="node-sub">ICAO TD3 line pair detection<br>→ structured passport fields</div>
+      </div>
+      <div class="arrow"><div class="a-line" style="height:10px"></div><div class="a-head"></div></div>
+      <div class="node node-amber" style="max-width:100%">
+        <div class="node-tag">Step 5</div>
+        <div class="node-title">Regex Parsers</div>
+        <div class="node-sub">IN_AADHAAR → 12-digit number · IN_PAN → AAAAA9999A<br>COMPANY_REG · Generic passport extractor</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow" style="margin-top:4px"><div class="a-line" style="height:16px"></div><div class="a-head"></div></div>
+
+  <div class="node node-indigo">
+    <div class="node-tag">Step 6 · _build_result()</div>
+    <div class="node-title">Sanitise · Assemble full_name · Score confidence</div>
+    <div class="node-sub">OCR noise stripped · overall_confidence = avg of per-field scores<br>
+    Persisted to DB: Document record + DocumentExtraction rows (one per field)</div>
+  </div>
+
+  <div class="arrow"><div class="a-line" style="height:16px"></div>
+    <div class="a-label">Extraction result returned to frontend immediately</div>
+  <div class="a-head"></div></div>
+
+  <div class="info-box">
+    <b>Confidence by source:</b>&nbsp;
+    MRZ 97% &nbsp;·&nbsp; Gemini Vision 96% &nbsp;·&nbsp; pdfminer 90% &nbsp;·&nbsp; Tesseract 82% &nbsp;·&nbsp; Regex 80%
+  </div>
+
+  <div class="arrow"><div class="a-line" style="height:20px"></div><div class="a-head"></div></div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <div class="phase">Phase 3 — Officer Review of Extracted Details</div>
+
+  <div class="node node-blue">
+    <div class="node-tag">Frontend · CaseDetailPage — IdentityDiscrepancyBanner</div>
+    <div class="node-title">Officer Reviews Extracted Document Details</div>
+    <div class="node-sub">Side-by-side: Case Registration vs Extracted from Document<br>
+    ✏️ Data Entry Error — Update Case &nbsp;|&nbsp; 🚨 Flag Suspicious<br>
+    PATCH /api/cases/{id}/correct-identity · updates case fields if corrected</div>
+  </div>
+
+  <div class="arrow"><div class="a-line" style="height:20px"></div><div class="a-head"></div></div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <div class="phase">Phase 4 — LLM Investigation Planning</div>
+
+  <div class="node node-blue">
+    <div class="node-tag">Frontend · CaseDetailPage</div>
+    <div class="node-title">Start Investigation</div>
+    <div class="node-sub">POST /api/cases/{id}/start-investigation<br>
+    Case status → <b style="color:#60a5fa">investigating</b> · background task launched</div>
+  </div>
+
+  <div class="arrow"><div class="a-line" style="height:16px"></div><div class="a-head"></div></div>
+
+  <div class="node node-purple">
+    <div class="node-tag">investigation_service.py — Phase 1</div>
+    <div class="node-title">LLM Plans the Investigation</div>
+    <div class="node-sub">Mandatory agents always included · Conditional agents auto-triggered by subject_type keywords<br>
+    LLM (Gemini/Claude/OpenAI) chooses optional agents based on risk profile · writes per-agent reasoning<br>
+    Result: ordered agent list tagged mandatory | conditional | llm_decided</div>
+  </div>
+
+  <div class="arrow"><div class="a-line" style="height:16px"></div><div class="a-head"></div></div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <div class="phase">Phase 5 — Agent Execution</div>
+
+  <div class="agent-grid">
+    <div class="agent-box ag-mandatory">
+      <div class="tier">Mandatory</div>
+      <div class="name">Identity Agent</div>
+      <div class="weight">Weight 15% · UIDAI / ICAO / PAN</div>
+    </div>
+    <div class="agent-box ag-mandatory">
+      <div class="tier">Mandatory</div>
+      <div class="name">Sanctions Agent</div>
+      <div class="weight">Weight 30% · OFAC / UN / EU / HM Treasury*</div>
+    </div>
+    <div class="agent-box ag-mandatory">
+      <div class="tier">Mandatory</div>
+      <div class="name">Adverse Media Agent</div>
+      <div class="weight">Weight 10% · Global News / Dow Jones</div>
+    </div>
+    <div class="agent-box ag-conditional">
+      <div class="tier">Conditional</div>
+      <div class="name">PEP Agent</div>
+      <div class="weight">Weight 25% · World-Check / LexisNexis</div>
+    </div>
+    <div class="agent-box ag-conditional">
+      <div class="tier">Conditional</div>
+      <div class="name">Registry Agent</div>
+      <div class="weight">Weight 15% · Companies House / MCA21</div>
+    </div>
+    <div class="agent-box ag-optional">
+      <div class="tier">Optional (LLM)</div>
+      <div class="name">Transaction Agent</div>
+      <div class="weight">Weight 5% · Pattern analysis</div>
+    </div>
+  </div>
+
+  <div class="arrow" style="margin-top:8px"><div class="a-line" style="height:14px"></div>
+    <div class="a-label">Each agent → verification_service → mock or real authority APIs</div>
+  <div class="a-head"></div></div>
+
+  <div class="node node-indigo">
+    <div class="node-tag">After each agent completes</div>
+    <div class="node-title">Live Score Updated</div>
+    <div class="node-sub">Partial weighted score recalculated over completed agents only · written to DB immediately<br>
+    Frontend polling (3s) picks up live risk_score during investigation</div>
+  </div>
+
+  <div class="arrow"><div class="a-line" style="height:16px"></div><div class="a-head"></div></div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <div class="phase">Phase 6 — Escalation Check</div>
+
+  <div class="diamond-wrap">
+    <div class="diamond"><span>Any agent score ≥ 70?</span></div>
+  </div>
+
+  <div class="branch-row" style="margin-top:4px">
+    <div class="branch-col">
+      <div class="arrow"><div class="a-line" style="height:12px"></div></div>
+      <span class="branch-badge badge-yes">YES</span>
+      <div class="arrow"><div class="a-line" style="height:10px"></div><div class="a-head"></div></div>
+      <div class="node node-red" style="max-width:100%">
+        <div class="node-tag">Escalation Loop</div>
+        <div class="node-title">LLM decides: run remaining optional agents?</div>
+        <div class="node-sub">LLM receives completed agent scores + flags<br>
+        Returns list of additional agents to escalate<br>
+        Escalated agents run, scores updated</div>
+      </div>
+    </div>
+    <div class="branch-col">
+      <div class="arrow"><div class="a-line" style="height:12px"></div></div>
+      <span class="branch-badge badge-no">NO</span>
+      <div class="arrow"><div class="a-line" style="height:10px"></div><div class="a-head"></div></div>
+      <div class="node node-slate" style="max-width:100%">
+        <div class="node-tag">No Escalation</div>
+        <div class="node-title">Proceed with current results</div>
+        <div class="node-sub">All run agents feed directly<br>into risk aggregation</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow" style="margin-top:4px"><div class="a-line" style="height:16px"></div><div class="a-head"></div></div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <div class="phase">Phase 7 — Risk Aggregation</div>
+
+  <div class="node node-teal">
+    <div class="node-tag">RiskAggregationAgent</div>
+    <div class="node-title">Weighted Final Score</div>
+    <div class="node-sub">
+      final_score = Σ(agent_score × weight) ÷ Σ(weights of run agents)<br>
+      Sanctions 30% · PEP 25% · Identity 15% · Registry 15% · Adverse Media 10% · Transactions 5%<br>
+      risk_level: LOW &lt;40 · MEDIUM 40–59 · HIGH 60–79 · CRITICAL ≥80<br>
+      All flags deduplicated · written to Case.risk_score + Case.risk_level in DB
+    </div>
+  </div>
+
+  <div class="arrow"><div class="a-line" style="height:16px"></div>
+    <div class="a-label">Case status → review</div>
+  <div class="a-head"></div></div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <div class="phase">Phase 8 — Human Review</div>
+
+  <div class="node node-blue">
+    <div class="node-tag">Frontend · ReviewQueuePage</div>
+    <div class="node-title">Risk-Ranked Review Queue</div>
+    <div class="node-sub">Cases sorted by risk_score descending · compliance officer picks case<br>
+    Agent findings · verification sources · flags · evidence all visible</div>
+  </div>
+
+  <div class="arrow"><div class="a-line" style="height:16px"></div><div class="a-head"></div></div>
+
+  <div class="node node-blue">
+    <div class="node-tag">Frontend · ReviewPanel · POST /api/reviews/</div>
+    <div class="node-title">Compliance Officer Submits Decision</div>
+    <div class="node-sub">reviewer_name · decision · comments · optional risk_override<br>
+    HumanReview record created · InvestigationEvent logged</div>
+  </div>
+
+  <div class="arrow"><div class="a-line" style="height:16px"></div><div class="a-head"></div></div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <div class="phase">Phase 9 — Outcome</div>
+
+  <div class="outcome-row">
+    <div class="outcome-box oc-green">
+      <div class="icon">✅</div>
+      <div class="label">Approved</div>
+      <div class="desc">Subject cleared · case status = cleared</div>
+    </div>
+    <div class="outcome-box oc-red">
+      <div class="icon">❌</div>
+      <div class="label">Rejected</div>
+      <div class="desc">Subject rejected · case status = rejected</div>
+    </div>
+    <div class="outcome-box oc-amber">
+      <div class="icon">⏸</div>
+      <div class="label">On Hold</div>
+      <div class="desc">Pending more info · case status = on_hold</div>
+    </div>
+    <div class="outcome-box oc-blue">
+      <div class="icon">🔄</div>
+      <div class="label">Re-investigate</div>
+      <div class="desc">POST /reinvestigate · clears old results · reruns all agents with updated data</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <div class="phase" style="margin-top:36px">Alternate Entry — AI Chat Intake</div>
+
+  <div class="node node-purple">
+    <div class="node-tag">Frontend · ChatIntakePage / ChatCasePage</div>
+    <div class="node-title">Natural Language Case Creation via LLM Chat</div>
+    <div class="node-sub">Officer describes subject in plain text · LLM extracts structured fields<br>
+    Auto-creates case via /api/cases/ · Chat session saved to /api/chat/history · joins main flow at Phase 2</div>
+  </div>
+
+</div>
+
+<p style="text-align:center;font-size:11px;color:#1e3a5a;margin-top:44px">
+  SmartKYC · FastAPI + React + SQLAlchemy · Gemini Vision · Multi-Agent Investigation Pipeline
+  &nbsp;·&nbsp; * HM Treasury checked for UK subjects only
+</p>
+
+</body>
+</html>

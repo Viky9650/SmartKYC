@@ -1,0 +1,70 @@
+{
+  "session_id": "2026-04-16-k8kdof",
+  "started_at": "2026-04-16T12:46:09.150Z",
+  "messages": [
+    {
+      "id": "welcome",
+      "role": "bot",
+      "text": "Welcome to SmartKYC. Here's what I can do:\n\n• **Launch an investigation** — drop an ID document or type a subject's full name\n• **Answer case queries** — ask about risk levels, pending reviews, flags, counts\n\nExamples: \"How many cases are for review?\", \"List high risk cases\", \"Show pending cases\""
+    },
+    {
+      "role": "user",
+      "text": "How many cases are tehre to review?",
+      "id": "nnvv5m282e"
+    },
+    {
+      "role": "bot",
+      "text": "There are **43 cases under review** out of 67 total.\n\n• TWITTERPREET SINGH (KYC-2026-B6BA) — low risk\n• TWITTERPREET SINGH (KYC-2026-F8BD) — low risk\n• Processing… (KYC-2026-2066) — low risk\n• Processing… (KYC-2026-5450) — low risk\n• EMILY ANN CARTER (KYC-2026-8E62) — low risk\n…and 38 more",
+      "id": "k1s4x2qhi0e"
+    },
+    {
+      "role": "user",
+      "file": {
+        "name": "USA-Passport.pdf",
+        "size": 795349
+      },
+      "id": "32us6bubaqr"
+    },
+    {
+      "role": "bot",
+      "text": "Got it — detecting document type for **USA-Passport.pdf**, extracting fields…",
+      "id": "5x52733jw4e"
+    },
+    {
+      "role": "bot",
+      "text": "Extracted **🇺🇸 US Passport** fields:",
+      "extraction": {
+        "document_schema": "US_PASSPORT",
+        "document_type": "Passport",
+        "country": "United States",
+        "issuer": "U.S. Department of State",
+        "full_name": "",
+        "fields": {},
+        "confidences": {},
+        "overall_confidence": 0.5,
+        "extraction_method": "tesseract",
+        "raw_text": ""
+      },
+      "id": "l73ml6abygp"
+    },
+    {
+      "role": "bot",
+      "text": "Launching investigation…",
+      "id": "zkffnfmmtek"
+    },
+    {
+      "role": "bot",
+      "text": "Investigation launched for **this subject** (KYC-2026-D42F). Agents are running — click \"Open case →\" to follow along.",
+      "caseCard": {
+        "caseId": "e1bfbe55-cfde-4550-9bd5-44895ce04698",
+        "caseNumber": "KYC-2026-D42F",
+        "subjectName": "Unknown Subject",
+        "status": "pending"
+      },
+      "id": "5eb9fm5xn48"
+    }
+  ],
+  "cases_created": [
+    "e1bfbe55-cfde-4550-9bd5-44895ce04698"
+  ]
+}

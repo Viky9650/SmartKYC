@@ -27,6 +27,30 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
+# ── Verification event callback ───────────────────────────────────────────────
+# investigation_service registers a callback here so verification calls
+# can emit log events without a circular import.
+_verification_event_callback = None
+_current_case_id: Optional[str] = None
+
+def register_verification_callback(fn):
+    """Called by investigation_service to hook into verification events."""
+    global _verification_event_callback
+    _verification_event_callback = fn
+
+def set_current_case_id(case_id: Optional[str]):
+    """Set the active case_id so run_verification can tag log events."""
+    global _current_case_id
+    _current_case_id = case_id
+
+async def _emit_verification_event(case_id: str, event_data: dict):
+    effective_id = case_id or _current_case_id
+    if _verification_event_callback and effective_id:
+        try:
+            await _verification_event_callback(effective_id, event_data)
+        except Exception:
+            pass  # Never let logging break verification
+
 
 # ─── Authority Definitions ────────────────────────────────────────────────────
 
@@ -341,62 +365,8 @@ def _mock_pep_check(subject_name: str, subject_type: str) -> Dict[str, Any]:
 
 
 def _mock_identity_check(authority_key: str, extracted_data: Dict) -> Dict[str, Any]:
-    """
-    Mock identity check that validates against the ACTUAL extracted fields.
-    Returns clear when required fields are present, flagged when missing.
-    """
-    confidence = round(random.uniform(0.88, 0.99), 2)
-
-    if authority_key == "INDIA_PAN_VERIFY":
-        pan   = extracted_data.get("pan_number") or extracted_data.get("id_number", "")
-        name  = extracted_data.get("name") or extracted_data.get("subject_name", "")
-        dob   = extracted_data.get("dob") or extracted_data.get("date_of_birth", "")
-        missing = []
-        if not pan:  missing.append("PAN Number")
-        if not dob:  missing.append("Date of Birth")
-        if missing:
-            return {
-                "result": "flagged",
-                "verified": False,
-                "confidence": 0.5,
-                "failed_fields": {f: "not extracted" for f in missing},
-                "checked_at": datetime.utcnow().isoformat(),
-                "is_mock": True,
-            }
-        return {
-            "result": "clear",
-            "verified": True,
-            "confidence": confidence,
-            "pan_number": pan,
-            "name_on_record": name,
-            "dob_on_record": dob,
-            "checked_at": datetime.utcnow().isoformat(),
-            "is_mock": True,
-        }
-
-    if authority_key == "UIDAI_AADHAAR":
-        aadhaar = extracted_data.get("aadhaar_number", "")
-        name    = extracted_data.get("name") or extracted_data.get("subject_name", "")
-        if not aadhaar:
-            return {
-                "result": "flagged",
-                "verified": False,
-                "confidence": 0.5,
-                "failed_fields": {"Aadhaar Number": "not extracted", "Name": "not found" if not name else "ok"},
-                "checked_at": datetime.utcnow().isoformat(),
-                "is_mock": True,
-            }
-        return {
-            "result": "clear",
-            "verified": True,
-            "confidence": confidence,
-            "aadhaar_number": aadhaar,
-            "name_on_record": name,
-            "checked_at": datetime.utcnow().isoformat(),
-            "is_mock": True,
-        }
-
-    # Generic identity check (passport, DVLA, etc.)
+    # Most identity checks pass
+    confidence = round(random.uniform(0.85, 0.99), 2)
     return {
         "result": "clear",
         "verified": True,
@@ -466,16 +436,54 @@ async def run_verification(
     nationality: str,
     extracted_data: Optional[Dict] = None,
     company_name: Optional[str] = None,
+    case_id: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """Run a single verification authority check (mock or real)."""
+    """Run a single verification authority check (mock or real) and log the API call."""
     authority = VERIFICATION_AUTHORITIES.get(authority_key)
     if not authority:
         return {"result": "error", "error": f"Unknown authority: {authority_key}"}
 
+    mode     = "MOCK" if settings.USE_MOCK_VERIFICATION else "LIVE"
+    endpoint = authority.get("real_api_endpoint", "n/a")
+
+    # Log: API call initiated
+    await _emit_verification_event(case_id, {
+        "authority_key":  authority_key,
+        "authority_name": authority["name"],
+        "authority_type": authority["type"],
+        "endpoint":       endpoint,
+        "mode":           mode,
+        "subject":        subject_name,
+        "phase":          "started",
+    })
+
+    start = datetime.utcnow()
     if settings.USE_MOCK_VERIFICATION:
-        return await _run_mock(authority_key, authority, subject_name, subject_type, nationality, extracted_data, company_name)
+        result = await _run_mock(authority_key, authority, subject_name, subject_type, nationality, extracted_data, company_name)
     else:
-        return await _run_real(authority_key, authority, subject_name, subject_type, nationality, extracted_data, company_name)
+        result = await _run_real(authority_key, authority, subject_name, subject_type, nationality, extracted_data, company_name)
+
+    elapsed_ms = int((datetime.utcnow() - start).total_seconds() * 1000)
+
+    # Log: API call completed with result
+    await _emit_verification_event(case_id, {
+        "authority_key":  authority_key,
+        "authority_name": authority["name"],
+        "authority_type": authority["type"],
+        "endpoint":       endpoint,
+        "mode":           mode,
+        "subject":        subject_name,
+        "result":         result.get("result", "unknown"),
+        "elapsed_ms":     elapsed_ms,
+        "phase":          "completed",
+        "flags":          [k for k in ["partial_match", "flagged", "country_risk"] if result.get(k)],
+    })
+
+    logger.info(
+        f"[VERIFY] {authority['name']} ({mode}) → {result.get('result','?')} "
+        f"for '{subject_name}' [{elapsed_ms}ms]"
+    )
+    return result
 
 
 async def _run_mock(authority_key, authority, subject_name, subject_type, nationality, extracted_data, company_name):

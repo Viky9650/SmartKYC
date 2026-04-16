@@ -24,65 +24,6 @@ from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
-def _repair_truncated_json(raw: str) -> str:
-    """
-    Repair JSON cut off mid-stream when the model hit max_tokens.
-    Fixes unclosed strings, arrays and objects.
-    Returns original string unchanged if it already parses cleanly.
-    """
-    import json as _json
-    try:
-        _json.loads(raw)
-        return raw
-    except Exception:
-        pass
-
-    s = raw.strip()
-
-    # Close any open string (odd number of unescaped double-quotes)
-    in_string = False
-    i = 0
-    while i < len(s):
-        if s[i] == '\\':
-            i += 2
-            continue
-        if s[i] == '"':
-            in_string = not in_string
-        i += 1
-    if in_string:
-        s += '"'
-
-    # Count unclosed braces / brackets
-    depth_brace = depth_bracket = 0
-    in_str = False
-    j = 0
-    while j < len(s):
-        if s[j] == '\\':
-            j += 2
-            continue
-        if s[j] == '"':
-            in_str = not in_str
-        if not in_str:
-            if   s[j] == '{': depth_brace   += 1
-            elif s[j] == '}': depth_brace   -= 1
-            elif s[j] == '[': depth_bracket += 1
-            elif s[j] == ']': depth_bracket -= 1
-        j += 1
-
-    # Strip trailing comma that would invalidate closing
-    s = re.sub(r',\s*$', '', s.rstrip())
-    s += ']' * max(depth_bracket, 0)
-    s += '}' * max(depth_brace,   0)
-
-    try:
-        _json.loads(s)
-        logger.debug("Repaired truncated JSON successfully")
-        return s
-    except Exception:
-        return raw
-
-
-
 # ─── Document Schema Registry ────────────────────────────────────────────────
 
 DOCUMENT_SCHEMAS: Dict[str, Dict] = {
@@ -206,21 +147,6 @@ DOCUMENT_SCHEMAS: Dict[str, Dict] = {
                    "registered_address","directors","company_type","jurisdiction"],
         "mrz_supported": False,
     },
-    "BOARDING_PASS": {
-        "country": "Various", "document_type": "Boarding Pass",
-        "fields": [
-            "passenger_name", "flight_number", "airline", "origin", "destination",
-            "departure_date", "departure_time", "arrival_time", "seat_number",
-            "booking_reference", "class", "gate", "terminal", "frequent_flyer",
-            "barcode_data",
-        ],
-        "mrz_supported": False,
-    },
-    "GENERIC_DOCUMENT": {
-        "country": "Various", "document_type": "Document",
-        "fields": ["name", "date", "reference_number", "issuer", "address"],
-        "mrz_supported": False,
-    },
     "GENERIC_PASSPORT": {
         "country": "Unknown", "document_type": "Passport",
         "fields": ["surname","given_names","nationality","date_of_birth",
@@ -238,9 +164,6 @@ def detect_document_type_from_filename(filename: str) -> str:
     def has(kw): return kw in fn
     def any_kw(*kws): return any(k in fn for k in kws)
 
-    if any_kw("boarding", "boarding_pass", "boardingpass", "flight_ticket",
-               "ticket", "bpass", "eticket", "e_ticket", "airticket"):
-        return "BOARDING_PASS"
     if any_kw("company_reg","corp_reg","cert_inc","certificate_of_inc","incorporation","company_registration"):
         return "COMPANY_REGISTRATION"
     if has("company") or has("llc") or (has("ltd") and has("reg")):
@@ -347,26 +270,61 @@ def _pdf_extract_text(pdf_bytes: bytes) -> Optional[str]:
 
 
 def _tesseract_ocr(image_bytes: bytes) -> Optional[str]:
-    """Run Tesseract on image bytes → raw text string."""
+    """Run Tesseract on image bytes → raw text string.
+
+    Uses multiple PSM modes and also runs a dedicated MRZ pass (psm 6 with
+    the ocrb charlist) so passport machine-readable zones are captured even
+    when the rest of the page is complex.
+    """
     try:
         import pytesseract
         from PIL import Image, ImageFilter, ImageEnhance
         img = Image.open(io.BytesIO(image_bytes))
+
+        # Resize very large images — Tesseract struggles above ~3000px wide
+        w, h = img.size
+        MAX_DIM = 2800
+        if max(w, h) > MAX_DIM:
+            scale = MAX_DIM / max(w, h)
+            img = img.resize((int(w * scale), int(h * scale)), Image.LANCZOS)
+            logger.debug(f"Tesseract: resized image from {w}x{h} to {img.size}")
+
         # Pre-process: greyscale + mild sharpening
         img = img.convert("L")
         img = ImageEnhance.Sharpness(img).enhance(2.0)
-        # Try multiple psm modes, take longest result
-        best = ""
+
+        results: list[str] = []
+
+        # Standard multi-psm pass
         for psm in ("3", "6", "4"):
             try:
                 t = pytesseract.image_to_string(img, config=f"--oem 3 --psm {psm}")
-                if len(t.strip()) > len(best.strip()):
-                    best = t
-            except Exception:
-                pass
-        return best.strip() if best.strip() else None
+                if t.strip():
+                    results.append(t.strip())
+            except Exception as psm_err:
+                logger.debug(f"Tesseract PSM {psm} error: {psm_err}")
+
+        # Dedicated MRZ pass — psm 6 (uniform block), whitelist A-Z 0-9 <
+        try:
+            mrz_cfg = "--oem 3 --psm 6 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<"
+            t = pytesseract.image_to_string(img, config=mrz_cfg)
+            if t.strip():
+                results.append(t.strip())
+        except Exception as mrz_err:
+            logger.debug(f"Tesseract MRZ pass error: {mrz_err}")
+
+        if not results:
+            logger.debug(f"Tesseract: all PSM passes returned empty (image size={img.size})")
+            return None
+
+        # Concatenate ALL passes separated by newlines.
+        # This ensures _parse_mrz can find the clean MRZ lines produced by
+        # the whitelist pass even when the noisy standard pass is also present.
+        combined = "\n".join(results)
+        logger.debug(f"Tesseract: extracted {len(combined)} chars across {len(results)} PSM passes")
+        return combined
     except Exception as e:
-        logger.warning(f"Tesseract OCR: {e}")
+        logger.warning(f"Tesseract OCR failed: {e}")
         return None
 
 
@@ -378,78 +336,56 @@ async def _gemini_vision_extract(
     schema_key: str,
 ) -> Optional[Dict[str, Any]]:
     """
-    Universal document extraction via Gemini Vision.
-    Gemini auto-identifies the document type and extracts every visible field.
-    No schema pre-knowledge needed — works for any document.
+    Send the actual document image to Gemini Vision.
+    Returns structured extraction result or None on failure.
     """
     from app.core.config import settings
     if not settings.GEMINI_API_KEY:
+        logger.warning(f"[Vision] GEMINI_API_KEY not set — skipping Vision for {schema_key}")
         return None
+    logger.debug(f"[Vision] Calling Gemini Vision for {schema_key} ({mime_type}, {len(image_bytes)} bytes)")
 
-    prompt = """You are a KYC compliance document analyst. Your job is to extract only the
-fields that are relevant for identity verification and compliance screening.
+    schema    = DOCUMENT_SCHEMAS.get(schema_key, DOCUMENT_SCHEMAS["GENERIC_PASSPORT"])
+    doc_type  = schema["document_type"]
+    country   = schema["country"]
+    fields    = schema["fields"]
 
-STEP 1 — Identify the document type.
-Determine exactly what this document is. Examples:
-Passport, Aadhaar Card, PAN Card, Driving Licence, National ID Card, Voter ID,
-Emirates ID, Residence Permit, Visa, Boarding Pass, Bank Statement, Utility Bill,
-Company Registration Certificate, Birth Certificate, or any other official document.
+    prompt = f"""You are a document intelligence expert performing KYC extraction.
 
-STEP 2 — Extract KYC-relevant fields only.
-Extract ONLY the fields below that apply to this document type.
-Do NOT extract operational details like baggage allowance, seat location,
-gate times, transaction histories, tariff rates, or product descriptions —
-these have no compliance value.
+Document type: {doc_type} from {country}
+Expected fields: {fields}
 
-KYC-relevant fields by document category:
-
-IDENTITY DOCUMENTS (Passport, National ID, Aadhaar, PAN, Driving Licence, Voter ID, Emirates ID):
-  surname, given_names, full_name_as_printed, date_of_birth, nationality,
-  gender, id_number, document_number, date_of_issue, date_of_expiry,
-  place_of_birth, address, issuing_authority, mrz_line1, mrz_line2
-
-TRAVEL DOCUMENTS (Boarding Pass, Visa, Travel Permit):
-  passenger_name, date_of_birth (if shown), nationality (if shown),
-  passport_number (if shown), travel_document_number,
-  origin_country, destination_country, travel_date, visa_type, visa_number
-
-FINANCIAL DOCUMENTS (Bank Statement, Tax Document):
-  account_holder_name, address, account_number (last 4 digits only),
-  bank_name, statement_period, country_of_account
-
-ADDRESS PROOF (Utility Bill, Council Tax, Insurance):
-  customer_name, address, document_date, issuing_organisation
-
-CORPORATE DOCUMENTS (Company Registration, Certificate of Incorporation):
-  company_name, registration_number, incorporation_date,
-  registered_address, directors, company_type, jurisdiction
+Look at this document image carefully and extract ALL visible fields.
 
 Rules:
-- Extract ONLY what is clearly visible — never invent or infer
-- Preserve exact text as printed (names, numbers, dates in original format)
-- For MRZ lines: copy both lines character-for-character exactly as printed
-- Omit any field that is not clearly readable
+- Extract ONLY what is clearly printed/visible on the document
+- Do NOT invent, guess or infer any values
+- Preserve exact original text (dates, numbers, names as printed)
+- For passports: also extract the two MRZ lines at the bottom
+- Rate confidence per field: 0.99 = crystal clear, 0.7 = partially obscured
+- If you cannot read a field, omit it entirely
 
-STEP 3 — Identify the primary name for KYC matching.
-Set full_name to the person or entity name that would be used for compliance screening.
-
-Return ONLY this JSON — no explanation, no markdown:
-{
-  "detected_document_type": "exact document type",
-  "detected_country": "issuing country",
-  "detected_issuer": "issuing authority or organisation",
-  "fields": {
-    "field_name": "extracted value"
-  },
-  "confidences": {
+Return ONLY this JSON (no markdown, no extra text):
+{{
+  "fields": {{
+    "surname": "...",
+    "given_names": "...",
+    "date_of_birth": "DD MMM YYYY",
+    "date_of_expiry": "DD MMM YYYY",
+    "date_of_issue": "DD MMM YYYY",
+    "passport_number": "...",
+    "nationality": "...",
+    "sex": "M or F",
+    "place_of_birth": "..."
+  }},
+  "confidences": {{
     "field_name": 0.95
-  },
-  "full_name": "name for KYC screening, exactly as printed",
-  "mrz_line1": "first MRZ line verbatim if present",
-  "mrz_line2": "second MRZ line verbatim if present",
-  "document_quality": "good|fair|poor",
-  "notes": "expiry status, visible tampering, or other compliance observations"
-}"""
+  }},
+  "full_name": "SURNAME GIVEN NAMES exactly as printed",
+  "mrz_line1": "P<USACARTER<<EMILY<ANN<<<<<<<<<<<<<<<<<<<<<",
+  "mrz_line2": "1234567890USA8502215F2502283<<<<<<<<<<<<<<<4",
+  "document_quality": "good"
+}}"""
 
     try:
         from app.core.llm_router import llm
@@ -457,32 +393,121 @@ Return ONLY this JSON — no explanation, no markdown:
             image_bytes=image_bytes,
             mime_type=mime_type,
             prompt=prompt,
-            system="You are a KYC document extraction AI. Return ONLY valid JSON.",
-            max_tokens=3000,
+            system="You are a KYC document extraction AI. Return ONLY valid JSON. No markdown fences. No raw_text field.",
+            max_tokens=4000,
         )
+        # Strip markdown fences if present
         clean = raw.strip()
         if clean.startswith("```"):
             clean = re.sub(r"```[a-z]*\n?", "", clean).strip("`").strip()
-        clean = _repair_truncated_json(clean)
-        result = json.loads(clean)
+
+        # Try full parse first; if truncated, attempt partial recovery
+        result = None
+        try:
+            result = json.loads(clean)
+        except json.JSONDecodeError as je:
+            logger.warning(f"[Vision] JSON parse failed ({je}), attempting partial recovery")
+            # Truncate at last complete top-level key boundary and close the object
+            # Strategy: find the last comma-or-{ before a complete "key": value pair
+            recovered = _recover_partial_json(clean)
+            if recovered:
+                result = recovered
+        if result is None:
+            raise ValueError("Could not parse Gemini response as JSON")
+
         result["_source"] = "gemini_vision"
-        detected = result.get("detected_document_type", "Unknown")
-        logger.info(f"Gemini Vision: detected '{detected}', extracted {len(result.get('fields',{}))} fields")
+        logger.info(f"Gemini Vision extracted {len(result.get('fields',{}))} fields from {schema_key}")
         return result
     except Exception as e:
-        logger.warning(f"Gemini Vision extraction failed: {e}")
+        logger.warning(f"[Vision] Gemini Vision extraction failed for {schema_key}: {type(e).__name__}: {e}")
         return None
+
+
+def _recover_partial_json(text: str) -> Optional[Dict]:
+    """Try to salvage useful fields from a truncated JSON string."""
+    # Extract "fields" block using regex even if outer JSON is truncated
+    result: Dict[str, Any] = {}
+
+    # Try to find the fields object
+    m = re.search(r'"fields"\s*:\s*(\{[^{}]*(?:\{[^{}]*\}[^{}]*)?\})', text, re.DOTALL)
+    if m:
+        try:
+            result["fields"] = json.loads(m.group(1))
+        except Exception:
+            # Parse key-value pairs manually from the fields block
+            fields: Dict[str, str] = {}
+            for km in re.finditer(r'"(\w+)"\s*:\s*"([^"]*)"', m.group(1)):
+                fields[km.group(1)] = km.group(2)
+            if fields:
+                result["fields"] = fields
+
+    # Extract scalar top-level keys
+    for key in ("full_name", "mrz_line1", "mrz_line2", "document_quality"):
+        km = re.search(rf'"{key}"\s*:\s*"([^"]*)"', text)
+        if km:
+            result[key] = km.group(1)
+
+    # Extract confidences
+    m2 = re.search(r'"confidences"\s*:\s*(\{[^{}]*\})', text, re.DOTALL)
+    if m2:
+        try:
+            result["confidences"] = json.loads(m2.group(1))
+        except Exception:
+            pass
+
+    return result if result.get("fields") else None
 
 
 # ─── MRZ parser ───────────────────────────────────────────────────────────────
 
 def _parse_mrz(text: str) -> Optional[Dict[str, Any]]:
-    """Parse ICAO MRZ lines from OCR text."""
-    lines = [l.strip() for l in text.splitlines() if re.match(r'^[A-Z0-9<]{30,}$', l.strip())]
-    if len(lines) < 2:
+    """Parse ICAO TD3 MRZ (passport) lines from OCR text.
+
+    Strategy:
+    1. Collect all lines that look like MRZ after cleaning.
+    2. Prefer a proper TD3 pair: line1 starts with 'P' and is 44 chars,
+       line2 is 44 chars starting with an alphanumeric — these are unique
+       signatures of a passport MRZ that distinguish it from OCR noise.
+    3. Fall back to the first two long-enough candidates if no TD3 pair found.
+    """
+    def _clean_mrz_line(raw: str) -> str:
+        s = raw.upper().replace(" ", "")
+        return s
+
+    candidate_lines = []
+    for raw_line in text.splitlines():
+        cleaned = _clean_mrz_line(raw_line.strip())
+        if len(cleaned) >= 30 and re.match(r'^[A-Z0-9<]{30,}$', cleaned):
+            candidate_lines.append(cleaned)
+        elif len(cleaned) >= 30:
+            noise = len(re.findall(r'[^A-Z0-9<]', cleaned))
+            if noise <= 2:
+                candidate_lines.append(re.sub(r'[^A-Z0-9<]', '<', cleaned))
+
+    if len(candidate_lines) < 2:
         return None
+
+    # ── Prefer a proper TD3 pair ──────────────────────────────────────────────
+    # TD3 line1: starts with P + letter/< and is 44 chars
+    # TD3 line2: 44 chars, starts with alphanumeric (doc number)
+    line1, line2 = None, None
+    for i, l in enumerate(candidate_lines):
+        # TD3 line1: 'P' + country letter/filler, 43–46 chars (OCR can add ±1)
+        if 43 <= len(l) <= 46 and l[0] == 'P' and l[1] in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ<':
+            # Look for a matching line2 nearby (same length range, starts with alnum)
+            for j in range(i + 1, min(i + 5, len(candidate_lines))):
+                cand2 = candidate_lines[j]
+                if 42 <= len(cand2) <= 46 and re.match(r'^[A-Z0-9]', cand2):
+                    line1, line2 = l, cand2
+                    break
+        if line1:
+            break
+
+    # Fall back to first two candidates
+    if not line1:
+        line1, line2 = candidate_lines[0], candidate_lines[1]
+
     try:
-        line1, line2 = lines[0], lines[1]
         country    = line1[2:5]
         name_raw   = line1[5:44]
         parts      = name_raw.split("<<")
@@ -497,17 +522,32 @@ def _parse_mrz(text: str) -> Optional[Dict[str, Any]]:
         def fmt_date(d: str) -> str:
             if len(d) != 6: return d
             yy, mm, dd = d[0:2], d[2:4], d[4:6]
-            year = f"19{yy}" if int(yy) > 30 else f"20{yy}"
-            return f"{dd}/{mm}/{year}"
+            try:
+                yi, mi, di = int(yy), int(mm), int(dd)
+                if not (1 <= mi <= 12 and 1 <= di <= 31):
+                    return d
+                year = f"19{yy}" if yi > 30 else f"20{yy}"
+                return f"{dd}/{mm}/{year}"
+            except ValueError:
+                return d  # return raw if OCR noise makes it unparseable
+
+        # Sanitize OCR-noisy fields
+        # Sex must be M/F/X — anything else is OCR noise
+        sex_clean = sex if sex in ("M", "F", "X") else ""
+        # Country code from line1 (P<USA...) is more reliably read
+        cty_clean = country if re.match(r'^[A-Z]{3}$', country) else re.sub(r'[^A-Z]', '', country)[:3]
+        # Nationality must be 3 uppercase letters; fall back to issuing country when OCR mangles it
+        nat_raw = re.sub(r'[^A-Z]', '', nationality)
+        nat_clean = nat_raw if len(nat_raw) == 3 else cty_clean
 
         return {
             "surname":         surname,
             "given_names":     given,
             "document_number": doc_num,
-            "issuing_country": country,
-            "nationality":     nationality,
+            "issuing_country": cty_clean,
+            "nationality":     nat_clean,
             "date_of_birth":   fmt_date(dob_raw),
-            "sex":             sex,
+            "sex":             sex_clean,
             "date_of_expiry":  fmt_date(exp_raw),
             "_source":         "mrz",
         }
@@ -622,98 +662,6 @@ def _extract_generic(text: str) -> Dict[str, Any]:
     # Place of birth — stop at next label
     m = re.search(r"Place of Birth[:\s]+([A-Z][A-Z ]{2,30}?)(?=\s+(?:Date|Passport|Issue|Expiry|\d)|$)", flat, re.I)
     if m: f["place_of_birth"] = _clean(m.group(1))
-
-    return f
-
-
-def _extract_boarding_pass(text: str) -> Dict[str, Any]:
-    """Extract fields from a boarding pass / flight ticket."""
-    f: Dict[str, Any] = {}
-    flat = " ".join(text.split())
-
-    # Passenger name — usually the largest text block near top, or after "Name:" / "Passenger:"
-    m = re.search(r'(?:Passenger|Name|PASSENGER|BOARDING)[:\s]+([A-Z][A-Z\s/]{3,40}?)(?=\s+(?:Flight|From|To|Gate|Seat|Date|Class|\d{2}[A-Z0-9]))', flat, re.I)
-    if m:
-        f["passenger_name"] = _clean(m.group(1))
-    else:
-        # Fallback: look for "SURNAME/FIRSTNAME" or "FIRSTNAME SURNAME" in caps
-        m = re.search(r'\b([A-Z]{2,20}/[A-Z]{2,20})\b', flat)
-        if m:
-            parts = m.group(1).split("/")
-            f["passenger_name"] = f"{parts[1]} {parts[0]}".title()
-        else:
-            # All-caps name block (common on boarding passes)
-            m = re.search(r'\b([A-Z]{2,}(?:\s+[A-Z]{2,}){1,3})\b', flat)
-            if m:
-                candidate = m.group(1)
-                # avoid matching flight codes like "AA 123"
-                if not re.match(r'^[A-Z]{2}\s+\d', candidate):
-                    f["passenger_name"] = candidate.title()
-
-    # Flight number — e.g. AA123, EK 204, BA 0456
-    m = re.search(r'\b([A-Z]{2}\s?\d{1,4})\b', flat)
-    if m:
-        f["flight_number"] = m.group(1).replace(" ", "")
-
-    # Booking / PNR reference — 6 uppercase alphanumeric
-    m = re.search(r'\b([A-Z0-9]{6})\b', flat)
-    if m:
-        f["booking_reference"] = m.group(1)
-
-    # Origin / Destination — 3-letter IATA codes
-    iata = re.findall(r'\b([A-Z]{3})\b', flat)
-    # Filter out common non-IATA words
-    skip = {"THE","AND","FOR","NOT","MR","MRS","MS","DR","PNR","PDF","IMG","OCR"}
-    iata_codes = [c for c in iata if c not in skip]
-    if len(iata_codes) >= 2:
-        f["origin"]      = iata_codes[0]
-        f["destination"] = iata_codes[1]
-
-    # Departure date
-    m = re.search(r'\b(\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{2,4}|\d{1,2}[/-]\d{1,2}[/-]\d{2,4})\b', flat, re.I)
-    if m:
-        f["departure_date"] = m.group(1)
-
-    # Departure time
-    m = re.search(r'\b(?:Dep(?:arture)?|Departs?|STD)[:\s]*(\d{1,2}:\d{2}(?:\s?[AP]M)?)\b', flat, re.I)
-    if not m:
-        m = re.search(r'\b(\d{2}:\d{2})\b', flat)
-    if m:
-        f["departure_time"] = m.group(1)
-
-    # Seat
-    m = re.search(r'\b(?:Seat|SEAT)[:\s]*([0-9]{1,3}[A-Z])\b', flat, re.I)
-    if not m:
-        m = re.search(r'\b(\d{1,3}[A-F])\b', flat)
-    if m:
-        f["seat_number"] = m.group(1)
-
-    # Gate
-    m = re.search(r'\b(?:Gate|GATE)[:\s]*([A-Z0-9]{1,5})\b', flat, re.I)
-    if m:
-        f["gate"] = m.group(1)
-
-    # Class
-    m = re.search(r'\b(?:Class|Cabin|CLASS)[:\s]*(Economy|Business|First|Premium Economy|[A-Z])\b', flat, re.I)
-    if m:
-        f["class"] = m.group(1)
-
-    # Airline name (common ones)
-    airlines = [
-        "IndiGo","Air India","SpiceJet","Vistara","GoAir","AirAsia","Emirates",
-        "British Airways","Lufthansa","Qatar Airways","Singapore Airlines",
-        "United Airlines","American Airlines","Delta","Southwest","Ryanair",
-        "EasyJet","Turkish Airlines","Air France","KLM",
-    ]
-    for airline in airlines:
-        if airline.lower() in flat.lower():
-            f["airline"] = airline
-            break
-
-    # Frequent flyer number
-    m = re.search(r'\b(?:FF|Frequent Flyer|Miles|FFN)[:\s#]*([A-Z0-9]{6,12})\b', flat, re.I)
-    if m:
-        f["frequent_flyer"] = m.group(1)
 
     return f
 
@@ -873,64 +821,46 @@ async def extract_document(
         confidences = vision_result.get("confidences", _assign_confidence(fields, "gemini_vision"))
         raw_text    = vision_result.get("raw_text", raw_text)
 
-        # Use Gemini's auto-detected document type instead of the filename guess
-        detected_type   = vision_result.get("detected_document_type", "")
-        detected_country = vision_result.get("detected_country", "")
-        detected_issuer  = vision_result.get("detected_issuer", "")
-
-        # Try to map detected type back to a known schema key for consistency,
-        # but always fall back gracefully to a dynamic schema built from what Vision found
-        resolved_schema_key = schema_key
-        for key, sc in DOCUMENT_SCHEMAS.items():
-            if sc["document_type"].lower() == detected_type.lower():
-                resolved_schema_key = key
-                break
-
-        # Merge in MRZ data (higher confidence) if Vision found MRZ lines
+        # Also run MRZ parser if Vision gave us MRZ lines
         mrz_text = f"{vision_result.get('mrz_line1','')}\n{vision_result.get('mrz_line2','')}"
         mrz = _parse_mrz(mrz_text) or _parse_mrz(raw_text)
         if mrz:
+            # Merge MRZ data — higher confidence
             for k, v in mrz.items():
                 if not k.startswith("_") and v and k not in fields:
                     fields[k] = v
                     confidences[k] = 0.97
 
-        if vision_result.get("full_name"):
-            fields["_full_name_override"] = vision_result["full_name"]
-
         extra = {
             "document_quality": vision_result.get("document_quality", "good"),
             "notes":            vision_result.get("notes", ""),
         }
-        conf_avg = sum(confidences.values()) / max(len(confidences), 1)
-        logger.info(f"[Vision] {detected_type}: {len(fields)} fields, conf={conf_avg:.2f}")
+        if not vision_result.get("full_name") and vision_result.get("fields"):
+            # Let _build_result compute full_name from fields
+            pass
+        if vision_result.get("full_name"):
+            fields["_full_name_override"] = vision_result["full_name"]
 
-        # Build result — override document_type/country/issuer with what Vision detected
-        result = _build_result(resolved_schema_key, fields, confidences, raw_text, "gemini_vision", extra)
-        if detected_type:
-            result["document_type"] = detected_type
-        if detected_country:
-            result["country"] = detected_country
-        if detected_issuer:
-            result["issuer"] = detected_issuer
-        return result
+        logger.info(f"[Vision] {schema_key}: {len(fields)} fields, conf={sum(confidences.values())/max(len(confidences),1):.2f}")
+        return _build_result(schema_key, fields, confidences, raw_text, "gemini_vision", extra)
 
-    # ── Path 2: OCR fallback (no Gemini key or Vision failed) ────────────────
+    # ── Path 2: OCR fallback ──────────────────────────────────────────────────
     logger.info(f"Gemini Vision unavailable/failed for {filename} — falling back to OCR")
 
+    # Run Tesseract if we don't have text yet
     if not raw_text or len(raw_text) < 30:
         raw_text = _tesseract_ocr(image_bytes) or ""
     ocr_source = "pdfminer" if (is_pdf and _pdf_extract_text(file_bytes)) else "tesseract"
 
     # ── Path 3: MRZ parser ────────────────────────────────────────────────────
     fields: Dict[str, Any] = {}
-    if schema.get("mrz_supported", True) and raw_text:
+    if schema.get("mrz_supported") and raw_text:
         mrz = _parse_mrz(raw_text)
         if mrz:
             fields.update({k: v for k, v in mrz.items() if not k.startswith("_")})
             ocr_source = "mrz"
 
-    # ── Path 4: Regex parsers — run known ones, generic catches everything else
+    # ── Path 4: Regex parsers ─────────────────────────────────────────────────
     if raw_text:
         if schema_key == "IN_AADHAAR":
             fields.update(_extract_aadhaar(raw_text))
@@ -939,10 +869,16 @@ async def extract_document(
         elif schema_key == "COMPANY_REGISTRATION":
             fields.update(_extract_company(raw_text))
         else:
-            # Generic extractor handles passports, IDs, and anything unknown
             fields.update(_extract_generic(raw_text))
 
     confidences = _assign_confidence(fields, ocr_source)
 
-    logger.info(f"[OCR/{ocr_source}] {schema_key}: {len(fields)} fields extracted")
+    if not fields:
+        logger.warning(
+            f"[OCR/{ocr_source}] {schema_key}: 0 fields extracted. "
+            f"raw_text length={len(raw_text)}. "
+            f"Tip: ensure Gemini Vision key is set for better extraction."
+        )
+    else:
+        logger.info(f"[OCR/{ocr_source}] {schema_key}: {len(fields)} fields extracted")
     return _build_result(schema_key, fields, confidences, raw_text, ocr_source)

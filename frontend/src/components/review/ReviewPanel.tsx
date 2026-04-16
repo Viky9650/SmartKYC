@@ -112,11 +112,10 @@ export default function ReviewPanel({
     setError('')
     setSubmitting(true)
     try {
-      await reviewsApi.submit({
-        case_id: c.id,
+      await reviewsApi.submit(c.id, {
         decision: selected,
+        reviewer_name: 'Compliance Officer',
         comments: comments.trim() || undefined,
-        risk_override: riskOverride ? parseFloat(riskOverride) : undefined,
       })
       setSubmitted(true)
       setTimeout(() => onDecision(selected), 800)

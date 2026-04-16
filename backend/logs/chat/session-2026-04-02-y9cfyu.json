@@ -1,0 +1,93 @@
+{
+  "session_id": "2026-04-02-y9cfyu",
+  "started_at": "2026-04-02T12:12:15.206Z",
+  "messages": [
+    {
+      "id": "welcome",
+      "role": "assistant",
+      "time": "13:12",
+      "content": "Welcome. Drop an ID document to auto-launch an investigation instantly, or just type a name and I'll handle the rest.\n\nYou can also ask about any existing case — risk scores, flags, agent findings."
+    },
+    {
+      "id": "mnhfq6wllj9",
+      "time": "13:12",
+      "role": "user",
+      "content": "List high cases"
+    },
+    {
+      "id": "mnhfq8t3q6t",
+      "time": "13:12",
+      "role": "assistant",
+      "content": "Here are the cases with a high risk score:\n* KYC-2026-2705 (Demo27)\n* KYC-2026-E90D (Demo25)\n* KYC-2026-210C (Test)"
+    },
+    {
+      "id": "mnhfrh4080s",
+      "time": "13:13",
+      "role": "user",
+      "content": "Please extract this document and launch the investigation.",
+      "file": {
+        "name": "Indian-Pancard.jpeg",
+        "type": "image/jpeg"
+      },
+      "extraction": {
+        "document_type": "IN_PAN",
+        "extracted_data": {
+          "fields": {
+            "full_name_as_printed": "TWITTERPREET SINGH",
+            "date_of_birth": "14/05/1995",
+            "id_number": "BWZPS1234R",
+            "issuing_authority": "INCOME TAX DEPARTMENT"
+          },
+          "confidences": {
+            "full_name_as_printed": 0.99,
+            "date_of_birth": 0.99,
+            "id_number": 0.99,
+            "issuing_authority": 0.99
+          },
+          "overall_confidence": 0.99,
+          "full_name": "TWITTERPREET SINGH",
+          "document_schema": "IN_PAN",
+          "extraction_method": "gemini_vision",
+          "document_type": "PAN Card",
+          "country": "India"
+        }
+      }
+    },
+    {
+      "id": "mnhfrjen1eg",
+      "time": "13:13",
+      "role": "assistant",
+      "content": "Got it — TWITTERPREET SINGH, IN_PAN, launching investigation.\n<CASE_READY>\n{\"subject_name\":\"TWITTERPRE"
+    },
+    {
+      "id": "mnhfsjr9buy",
+      "time": "13:14",
+      "role": "user",
+      "content": "Please extract this document and launch the investigation.",
+      "file": {
+        "name": "USA-Passport.png",
+        "type": "image/png"
+      },
+      "extraction": {
+        "document_type": "US_PASSPORT",
+        "extracted_data": {
+          "fields": {},
+          "confidences": {},
+          "overall_confidence": 0.5,
+          "full_name": "",
+          "document_schema": "US_PASSPORT",
+          "extraction_method": "tesseract",
+          "document_type": "Passport",
+          "country": "United States"
+        }
+      }
+    },
+    {
+      "id": "mnhfsmqqlq9",
+      "time": "13:14",
+      "role": "assistant",
+      "content": "Got it — US_PASSPORT, launching investigation.\n<CASE_READY>\n{\"subject_name\":\"see"
+    }
+  ],
+  "cases_created": []
+}

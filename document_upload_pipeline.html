@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SmartKYC — Document Upload Pipeline</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f1623;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 40px 24px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 20px;
+      font-weight: 700;
+      color: #f0f6ff;
+      margin-bottom: 6px;
+      letter-spacing: 0.3px;
+    }
+    .subtitle {
+      text-align: center;
+      font-size: 13px;
+      color: #64748b;
+      margin-bottom: 40px;
+    }
+
+    .chart {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── Nodes ── */
+    .node {
+      width: 100%;
+      max-width: 560px;
+      border-radius: 12px;
+      padding: 14px 20px;
+      position: relative;
+      text-align: center;
+    }
+    .node-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      opacity: 0.7;
+    }
+    .node-title {
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .node-sub {
+      font-size: 12px;
+      opacity: 0.75;
+      margin-top: 3px;
+      line-height: 1.5;
+    }
+
+    /* colours */
+    .node-trigger  { background: #1e3a5f; border: 2px solid #3b82f6; }
+    .node-trigger .node-label  { color: #60a5fa; }
+    .node-trigger .node-title  { color: #bfdbfe; }
+
+    .node-process  { background: #1a2744; border: 2px solid #6366f1; }
+    .node-process .node-label  { color: #a5b4fc; }
+    .node-process .node-title  { color: #e0e7ff; }
+
+    .node-decision { background: #1e2d1e; border: 2px solid #22c55e; }
+    .node-decision .node-label { color: #86efac; }
+    .node-decision .node-title { color: #bbf7d0; }
+
+    .node-vision   { background: #2d1f47; border: 2px solid #a855f7; }
+    .node-vision .node-label   { color: #d8b4fe; }
+    .node-vision .node-title   { color: #ede9fe; }
+
+    .node-ocr      { background: #2d2010; border: 2px solid #f59e0b; }
+    .node-ocr .node-label      { color: #fcd34d; }
+    .node-ocr .node-title      { color: #fef3c7; }
+
+    .node-mrz      { background: #1a2a2a; border: 2px solid #14b8a6; }
+    .node-mrz .node-label      { color: #5eead4; }
+    .node-mrz .node-title      { color: #ccfbf1; }
+
+    .node-persist  { background: #1e2535; border: 2px solid #475569; }
+    .node-persist .node-label  { color: #94a3b8; }
+    .node-persist .node-title  { color: #cbd5e1; }
+
+    .node-output   { background: #0f2820; border: 2px solid #10b981; }
+    .node-output .node-label   { color: #6ee7b7; }
+    .node-output .node-title   { color: #a7f3d0; }
+
+    /* ── Arrows ── */
+    .arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      margin: 0;
+    }
+    .arrow-line {
+      width: 2px;
+      background: #334155;
+      height: 22px;
+    }
+    .arrow-head {
+      width: 0; height: 0;
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-top: 9px solid #334155;
+    }
+    .arrow-label {
+      font-size: 10px;
+      color: #64748b;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      background: #0f1623;
+      padding: 0 6px;
+      margin: -2px 0;
+    }
+
+    /* ── Branch (decision fork) ── */
+    .branch-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 24px;
+      width: 100%;
+      max-width: 860px;
+      position: relative;
+    }
+    .branch-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      max-width: 380px;
+    }
+    .branch-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-bottom: 4px;
+    }
+    .branch-yes { background: #14532d33; color: #86efac; border: 1px solid #22c55e; }
+    .branch-no  { background: #7f1d1d33; color: #fca5a5; border: 1px solid #ef4444; }
+
+    /* horizontal connector between branches */
+    .h-connector {
+      position: relative;
+      width: 100%;
+      max-width: 860px;
+      height: 30px;
+      margin: 0 auto;
+    }
+    .h-connector svg { width: 100%; height: 100%; overflow: visible; }
+
+    /* merge arrow back together */
+    .merge-arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* confidence table */
+    .conf-table {
+      background: #141d2e;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 11px;
+      width: 100%;
+      max-width: 360px;
+      margin-top: 4px;
+    }
+    .conf-table table { width: 100%; border-collapse: collapse; }
+    .conf-table th { color: #64748b; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 6px; text-align: left; }
+    .conf-table td { padding: 3px 6px; }
+    .conf-table tr:not(:last-child) td { border-bottom: 1px solid #1e2a3a; }
+    .bar { display: inline-block; height: 6px; border-radius: 3px; vertical-align: middle; margin-right: 6px; }
+    .bar-purple { background: #a855f7; }
+    .bar-teal   { background: #14b8a6; }
+    .bar-indigo { background: #6366f1; }
+    .bar-amber  { background: #f59e0b; }
+    .bar-slate  { background: #94a3b8; }
+
+    .section-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #475569;
+      margin: 18px 0 6px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>📄 SmartKYC — Document Upload Pipeline</h1>
+<p class="subtitle">From file upload to extracted fields in the database</p>
+
+<div class="chart">
+
+  <!-- STEP 1: Trigger -->
+  <div class="node node-trigger">
+    <div class="node-label">Step 1 · Entry Point</div>
+    <div class="node-title">POST /api/documents/upload/{case_id}</div>
+    <div class="node-sub">Frontend sends file + optional document_type hint · Accepted: JPEG, PNG, WebP, TIFF, GIF, PDF</div>
+  </div>
+
+  <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+  <!-- STEP 2: Validate & Save -->
+  <div class="node node-process">
+    <div class="node-label">Step 2 · Validate & Save</div>
+    <div class="node-title">Validate case exists · Save raw bytes to disk</div>
+    <div class="node-sub">File stored as {uuid}{ext} · UUID becomes document_id</div>
+  </div>
+
+  <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+  <!-- STEP 3: Document type detection -->
+  <div class="node node-process">
+    <div class="node-label">Step 3 · Document Type Detection</div>
+    <div class="node-title">Classify document schema</div>
+    <div class="node-sub">Use frontend hint if provided · Otherwise parse filename for keywords<br/>
+      e.g. "ru_passport_viktor.pdf" → RU_PASSPORT · "aadhaar_card.jpg" → IN_AADHAAR<br/>
+      20+ schemas: IN_PAN · IN_AADHAAR · RU_PASSPORT · GB_PASSPORT · AE_EMIRATES_ID · CN_ID_CARD…
+    </div>
+  </div>
+
+  <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+  <!-- STEP 4: PDF decision -->
+  <div class="node node-decision">
+    <div class="node-label">Step 4 · File Type Check</div>
+    <div class="node-title">Is it a PDF?</div>
+  </div>
+
+  <!-- branch row -->
+  <div style="width:100%;max-width:860px;display:flex;justify-content:center;gap:0;margin:0">
+
+    <!-- YES branch -->
+    <div style="display:flex;flex-direction:column;align-items:center;flex:1;max-width:420px;">
+      <div class="arrow"><div class="arrow-line"></div></div>
+      <span class="branch-label branch-yes">✓ YES — PDF</span>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+      <div class="node node-process" style="max-width:380px;">
+        <div class="node-label">PDF Pre-processing</div>
+        <div class="node-title">pdfminer text extract + pdf2image render</div>
+        <div class="node-sub">
+          pdfminer → fast text from searchable PDFs<br/>
+          pdf2image → render page 1 at 200 DPI → PNG<br/>
+          Scanned PDFs: no text, image only
+        </div>
+      </div>
+    </div>
+
+    <!-- NO branch -->
+    <div style="display:flex;flex-direction:column;align-items:center;flex:1;max-width:420px;">
+      <div class="arrow"><div class="arrow-line"></div></div>
+      <span class="branch-label branch-no">✗ NO — Image</span>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+      <div class="node node-process" style="max-width:380px;">
+        <div class="node-label">Image Pre-processing</div>
+        <div class="node-title">Use raw image bytes directly</div>
+        <div class="node-sub">JPEG / PNG / WebP / TIFF passed straight to extraction</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- merge arrow -->
+  <div class="arrow" style="margin-top:4px;"><div class="arrow-line" style="height:16px;"></div><div class="arrow-head"></div></div>
+
+  <!-- STEP 5: Vision -->
+  <div class="node node-vision">
+    <div class="node-label">Step 5 · Primary Path — Gemini Vision</div>
+    <div class="node-title">🔮 Google Gemini Vision API</div>
+    <div class="node-sub">
+      Image + schema-aware prompt → structured JSON<br/>
+      Returns: fields · per-field confidence · MRZ lines · document_quality<br/>
+      Truncated JSON → partial recovery parser (regex salvage)
+    </div>
+  </div>
+
+  <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+  <!-- STEP 6: Vision success decision -->
+  <div class="node node-decision">
+    <div class="node-label">Step 6 · Vision Result Check</div>
+    <div class="node-title">Did Vision return fields?</div>
+    <div class="node-sub">(fails if GEMINI_API_KEY not set, network error, or parse failure)</div>
+  </div>
+
+  <!-- branch row -->
+  <div style="width:100%;max-width:860px;display:flex;justify-content:center;gap:0;margin:0">
+
+    <!-- YES: Vision success -->
+    <div style="display:flex;flex-direction:column;align-items:center;flex:1;max-width:420px;">
+      <div class="arrow"><div class="arrow-line"></div></div>
+      <span class="branch-label branch-yes">✓ Fields extracted</span>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+      <div class="node node-vision" style="max-width:380px;">
+        <div class="node-label">Vision + MRZ Merge</div>
+        <div class="node-title">Run MRZ parser on Vision's MRZ lines</div>
+        <div class="node-sub">
+          Merge MRZ fields into Vision fields at conf 0.97<br/>
+          MRZ wins only for fields Vision didn't extract
+        </div>
+      </div>
+    </div>
+
+    <!-- NO: OCR fallback -->
+    <div style="display:flex;flex-direction:column;align-items:center;flex:1;max-width:420px;">
+      <div class="arrow"><div class="arrow-line"></div></div>
+      <span class="branch-label branch-no">✗ Vision unavailable</span>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+      <div class="node node-ocr" style="max-width:380px;">
+        <div class="node-label">Step 7 · OCR Fallback — Tesseract</div>
+        <div class="node-title">🔎 Tesseract OCR</div>
+        <div class="node-sub">
+          Greyscale + sharpen · 3× PSM modes (3, 6, 4)<br/>
+          + dedicated MRZ pass (A-Z 0-9 &lt; whitelist)<br/>
+          All passes concatenated → raw text blob
+        </div>
+      </div>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+      <div class="node node-mrz" style="max-width:380px;">
+        <div class="node-label">Step 8 · MRZ Parser (ICAO TD3)</div>
+        <div class="node-title">🛂 Machine-Readable Zone decode</div>
+        <div class="node-sub">
+          Detects 44-char P&lt;XXX line pairs<br/>
+          Decodes: surname · given names · DOB · nationality · expiry · doc number · sex
+        </div>
+      </div>
+      <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+      <div class="node node-ocr" style="max-width:380px;">
+        <div class="node-label">Step 9 · Regex Parsers</div>
+        <div class="node-title">Document-specific field extraction</div>
+        <div class="node-sub">
+          IN_AADHAAR → 12-digit Aadhaar · DOB · gender · address<br/>
+          IN_PAN → AAAAA9999A pattern · father name<br/>
+          COMPANY_REG → reg number · directors · address<br/>
+          Generic → passport number · dates · name · nationality
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- merge -->
+  <div class="arrow" style="margin-top:4px;"><div class="arrow-line" style="height:16px;"></div><div class="arrow-head"></div></div>
+
+  <!-- STEP 10: Assemble result -->
+  <div class="node node-process">
+    <div class="node-label">Step 10 · Result Assembly</div>
+    <div class="node-title">Sanitise · compute full_name · score confidence</div>
+    <div class="node-sub">
+      OCR noise stripped from all field values<br/>
+      full_name assembled: full_name → name → given_names + surname<br/>
+      overall_confidence = average of all per-field scores
+    </div>
+  </div>
+
+  <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+  <!-- Confidence table -->
+  <div class="conf-table">
+    <table>
+      <tr><th>Extraction Source</th><th>Confidence</th><th></th></tr>
+      <tr>
+        <td>MRZ Parser</td>
+        <td>0.97</td>
+        <td><span class="bar bar-teal" style="width:97px"></span></td>
+      </tr>
+      <tr>
+        <td>Gemini Vision</td>
+        <td>0.96</td>
+        <td><span class="bar bar-purple" style="width:96px"></span></td>
+      </tr>
+      <tr>
+        <td>pdfminer (text PDF)</td>
+        <td>0.90</td>
+        <td><span class="bar bar-indigo" style="width:90px"></span></td>
+      </tr>
+      <tr>
+        <td>Tesseract OCR</td>
+        <td>0.82</td>
+        <td><span class="bar bar-amber" style="width:82px"></span></td>
+      </tr>
+      <tr>
+        <td>Regex parsers</td>
+        <td>0.80</td>
+        <td><span class="bar bar-slate" style="width:80px"></span></td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="arrow" style="margin-top:8px;"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+  <!-- STEP 11: Persist -->
+  <div class="node node-persist">
+    <div class="node-label">Step 11 · Database Persistence</div>
+    <div class="node-title">Write Document record + DocumentExtraction rows</div>
+    <div class="node-sub">
+      Document → full extracted_data JSON blob (fields, confidences, schema, method, quality)<br/>
+      DocumentExtraction → one row per field with individual confidence score
+    </div>
+  </div>
+
+  <div class="arrow"><div class="arrow-line"></div><div class="arrow-head"></div></div>
+
+  <!-- STEP 12: Response -->
+  <div class="node node-output">
+    <div class="node-label">Step 12 · API Response</div>
+    <div class="node-title">✅ Return to frontend immediately</div>
+    <div class="node-sub">
+      document_id · document_type · filename · file_size<br/>
+      extracted_data (persisted) · extraction (full live result)<br/>
+      Frontend renders extraction panel — no second round trip needed
+    </div>
+  </div>
+
+</div>
+
+<p style="text-align:center;font-size:11px;color:#334155;margin-top:40px;">SmartKYC Document Intelligence Pipeline · document_service.py</p>
+
+</body>
+</html>

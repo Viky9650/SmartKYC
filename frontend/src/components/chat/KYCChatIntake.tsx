@@ -119,12 +119,35 @@ interface Props {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function parseCaseReady(text: string): CaseData | null {
-  const m = text.match(/<CASE_READY>([\s\S]*?)<\/CASE_READY>/)
-  if (!m) return null
-  try { return JSON.parse(m[1].trim()) } catch { return null }
+  // Strategy 1: full tag with closing tag
+  const m1 = text.match(/<CASE_READY>\s*([\s\S]*?)\s*<\/CASE_READY>/)
+  if (m1) {
+    try { return JSON.parse(m1[1].trim()) as CaseData } catch {}
+  }
+  // Strategy 2: opening tag only (Gemini sometimes omits the closing tag)
+  const m2 = text.match(/<CASE_READY>\s*(\{[\s\S]*)/)
+  if (m2) {
+    const jsonStr = m2[1].trim()
+    // Try full string first
+    try { return JSON.parse(jsonStr) as CaseData } catch {}
+    // Try to extract a complete JSON object even if trailing text follows
+    let depth = 0, end = 0
+    for (let i = 0; i < jsonStr.length; i++) {
+      if (jsonStr[i] === '{') depth++
+      else if (jsonStr[i] === '}') { depth--; if (depth === 0) { end = i + 1; break } }
+    }
+    if (end) {
+      try { return JSON.parse(jsonStr.slice(0, end)) as CaseData } catch {}
+    }
+  }
+  return null
 }
 function cleanText(t: string) {
-  return t.replace(/<CASE_READY>[\s\S]*?<\/CASE_READY>/g, '').trim()
+  // Remove full CASE_READY block (with closing tag)
+  let cleaned = t.replace(/<CASE_READY>[\s\S]*?<\/CASE_READY>/g, '')
+  // Remove partial CASE_READY block (no closing tag — Gemini truncated it)
+  cleaned = cleaned.replace(/<CASE_READY>[\s\S]*$/g, '')
+  return cleaned.trim()
 }
 function ts() {
   return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -191,6 +214,37 @@ async function apiUploadDoc(caseId: string, file: File): Promise<ExtractionResul
 
 async function apiStartInvestigation(caseId: string) {
   await fetch(`${API_BASE}/cases/${caseId}/start-investigation`, { method: 'POST' })
+}
+
+// ── Chat session persistence ─────────────────────────────────────────────────
+function generateSessionId() {
+  return new Date().toISOString().slice(0,10) + '-' + Math.random().toString(36).slice(2,8)
+}
+
+async function apiSaveSession(session: {
+  session_id: string; started_at: string
+  messages: any[]; cases_created: string[]
+}) {
+  await fetch(`${API_BASE}/chat/history`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(session),
+  }).catch(() => {})
+}
+
+async function apiFetchSessions(): Promise<any[]> {
+  const r = await fetch(`${API_BASE}/chat/history`)
+  if (!r.ok) return []
+  return r.json()
+}
+
+async function apiFetchSession(sessionId: string): Promise<any | null> {
+  const r = await fetch(`${API_BASE}/chat/history/${sessionId}`)
+  if (!r.ok) return null
+  return r.json()
+}
+
+async function apiDeleteSession(sessionId: string) {
+  await fetch(`${API_BASE}/chat/history/${sessionId}`, { method: 'DELETE' }).catch(() => {})
 }
 
 // Pre-extract a document without creating a case first.
@@ -550,11 +604,39 @@ export default function KYCChatIntake({ onCaseCreated }: Props) {
   const [dragging, setDragging]           = useState(false)
   const [caseContext, setCaseContext]      = useState('')
   const [geminiModel, setGeminiModel]       = useState('gemini-2.0-flash')
+  const [sessionId, setSessionId]           = useState(() => generateSessionId())
+  const [sessionStarted, setSessionStarted] = useState(() => new Date().toISOString())
+  const [casesCreated, setCasesCreated]     = useState<string[]>([])
+  const [sessions, setSessions]             = useState<any[]>([])
+  const [showHistory, setShowHistory]       = useState(false)
+  const [loadingSession, setLoadingSession] = useState(false)
 
   const bottomRef  = useRef<HTMLDivElement>(null)
   const inputRef   = useRef<HTMLTextAreaElement>(null)
   const historyRef      = useRef<GeminiTurn[]>([])
   const pendingFilesRef = useRef<Map<string, File>>(new Map())
+
+  // Auto-save chat session whenever messages change
+  useEffect(() => {
+    if (messages.length <= 1) return  // Don't save just the welcome message
+    const timer = setTimeout(() => {
+      // Strip File objects — not serialisable
+      const serialisable = messages.map(m => ({
+        ...m,
+        file: m.file ? { name: m.file.name, type: m.file.type } : undefined,
+        extraction: m.extraction,
+        caseData: m.caseData,
+        launched: m.launched,
+      }))
+      apiSaveSession({
+        session_id:    sessionId,
+        started_at:    sessionStarted,
+        messages:      serialisable,
+        cases_created: casesCreated,
+      })
+    }, 1500)  // 1.5s debounce
+    return () => clearTimeout(timer)
+  }, [messages, casesCreated])
 
   // On mount: fetch Gemini config from backend, then load case context
   useEffect(() => {
@@ -580,6 +662,9 @@ export default function KYCChatIntake({ onCaseCreated }: Props) {
     apiFetchCases()
       .then(cases => setCaseContext(buildCaseContext(cases)))
       .catch(() => {})
+
+    // Load session list for history sidebar
+    apiFetchSessions().then(setSessions).catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -808,6 +893,43 @@ export default function KYCChatIntake({ onCaseCreated }: Props) {
 
   function handleOpen(caseId: string) { navigate(`/cases/${caseId}`) }
 
+  async function loadSession(id: string) {
+    setLoadingSession(true)
+    try {
+      const data = await apiFetchSession(id)
+      if (!data) return
+      // Restore messages — files won't be restorable but all text/cards will
+      const restored = (data.messages || []).map((m: any) => ({
+        ...m,
+        // Mark restored file bubbles so we know not to re-upload
+        file: m.file ? { ...m.file, restored: true } : undefined,
+      }))
+      setMessages(restored)
+      setSessionId(data.session_id)
+      setSessionStarted(data.started_at)
+      setCasesCreated(data.cases_created || [])
+      historyRef.current = []  // Reset Gemini history — it will rebuild from context
+      setShowHistory(false)
+      // Reload DB context so Gemini has fresh case data
+      apiFetchCases().then(c => setCaseContext(buildCaseContext(c))).catch(() => {})
+    } finally {
+      setLoadingSession(false)
+    }
+  }
+
+  function startNewSession() {
+    setMessages([{
+      id: 'welcome', role: 'assistant', time: ts(),
+      content: 'New session started. Drop an ID document to auto-launch, or describe a subject to investigate.',
+    }])
+    setSessionId(generateSessionId())
+    setSessionStarted(new Date().toISOString())
+    setCasesCreated([])
+    setCurrentCaseId(null)
+    historyRef.current = []
+    setShowHistory(false)
+  }
+
   function handleDrop(e: DragEvent<HTMLDivElement>) {
     e.preventDefault(); setDragging(false)
     const f = e.dataTransfer.files[0]
@@ -855,6 +977,149 @@ export default function KYCChatIntake({ onCaseCreated }: Props) {
           </div>
         )}
 
+        {/* History sidebar — slides in from right */}
+        {showHistory && (
+          <div style={{
+            position: 'absolute', top: 57, right: 0, bottom: 0, width: 320, zIndex: 40,
+            background: T.surface, borderLeft: `1px solid ${T.border}`,
+            display: 'flex', flexDirection: 'column',
+            boxShadow: '-4px 0 16px rgba(30,42,58,0.08)',
+            animation: 'kycFadeIn 0.18s ease-out',
+          }}>
+            {/* Sidebar header */}
+            <div style={{
+              padding: '12px 16px', borderBottom: `1px solid ${T.border}`,
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              flexShrink: 0,
+            }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: T.text }}>
+                Chat History
+              </span>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <span style={{
+                  fontSize: 10, color: T.textMuted, fontFamily: T.mono,
+                  padding: '2px 8px', background: T.bg, borderRadius: 10,
+                  border: `1px solid ${T.border}`,
+                }}>
+                  {sessions.length} sessions
+                </span>
+                <button
+                  onClick={() => setShowHistory(false)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.textMuted, fontSize: 16, padding: 0 }}
+                >✕</button>
+              </div>
+            </div>
+
+            {/* Current session indicator */}
+            <div style={{
+              padding: '8px 16px', borderBottom: `1px solid ${T.borderLight}`,
+              background: T.blueLight, flexShrink: 0,
+            }}>
+              <div style={{ fontSize: 10, color: T.textMuted, fontFamily: T.mono, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 2 }}>
+                Current session
+              </div>
+              <div style={{ fontSize: 12, color: T.text, fontFamily: T.mono }}>
+                {sessionId} · {messages.length - 1} messages
+              </div>
+            </div>
+
+            {/* Session list */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: 12 }}>
+              {loadingSession && (
+                <div style={{ padding: 20, textAlign: 'center', fontSize: 12, color: T.textMuted }}>
+                  Loading session...
+                </div>
+              )}
+              {sessions.length === 0 ? (
+                <div style={{ padding: 20, textAlign: 'center', fontSize: 12, color: T.textMuted }}>
+                  No saved sessions yet. Sessions are auto-saved as you chat.
+                </div>
+              ) : (
+                sessions.map(s => {
+                  const isActive = s.session_id === sessionId
+                  return (
+                    <div
+                      key={s.session_id}
+                      onClick={() => !isActive && loadSession(s.session_id)}
+                      style={{
+                        padding: '10px 12px', borderRadius: T.radius, marginBottom: 6,
+                        border: `1px solid ${isActive ? T.blueMid : T.border}`,
+                        background: isActive ? T.blueLight : 'transparent',
+                        cursor: isActive ? 'default' : 'pointer',
+                        transition: 'all 0.12s',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                        <span style={{ fontSize: 11, fontFamily: T.mono, color: isActive ? T.blue : T.textMid, fontWeight: 600 }}>
+                          {s.session_id}
+                          {isActive && <span style={{ marginLeft: 6, fontSize: 9, color: T.blue }}> ● current</span>}
+                        </span>
+                        <span style={{ fontSize: 10, color: T.textMuted, fontFamily: T.mono }}>
+                          {s.message_count} msgs
+                        </span>
+                      </div>
+                      {s.started_at && (
+                        <div style={{ fontSize: 10, color: T.textMuted, fontFamily: T.mono, marginBottom: 4 }}>
+                          {new Date(s.started_at).toLocaleString()}
+                        </div>
+                      )}
+                      {s.last_message && (
+                        <div style={{
+                          fontSize: 11, color: T.textMid,
+                          overflow: 'hidden', textOverflow: 'ellipsis',
+                          display: '-webkit-box', WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                        }}>
+                          {s.last_message}
+                        </div>
+                      )}
+                      {s.cases_created?.length > 0 && (
+                        <div style={{ marginTop: 4, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                          {s.cases_created.map((id: string) => (
+                            <span
+                              key={id}
+                              onClick={e => { e.stopPropagation(); navigate(`/cases/${id}`) }}
+                              style={{
+                                fontSize: 9, padding: '1px 6px', borderRadius: 4,
+                                background: T.greenLight, color: T.green,
+                                border: `1px solid ${T.greenBorder}`,
+                                fontFamily: T.mono, cursor: 'pointer',
+                              }}
+                            >↗ case</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })
+              )}
+            </div>
+
+            {/* Footer actions */}
+            <div style={{
+              padding: '10px 12px', borderTop: `1px solid ${T.border}`,
+              display: 'flex', gap: 8, flexShrink: 0,
+            }}>
+              <button
+                onClick={startNewSession}
+                style={{
+                  flex: 1, padding: '8px 0', fontSize: 12, fontWeight: 600,
+                  background: T.blue, color: '#fff',
+                  border: 'none', borderRadius: T.radius, cursor: 'pointer',
+                }}
+              >＋ New Session</button>
+              <button
+                onClick={() => apiFetchSessions().then(setSessions).catch(() => {})}
+                style={{
+                  padding: '8px 12px', fontSize: 12,
+                  background: T.bg, color: T.textMid,
+                  border: `1px solid ${T.border}`, borderRadius: T.radius, cursor: 'pointer',
+                }}
+              >↺</button>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div style={{
           padding: '0 20px', height: 57, flexShrink: 0,
@@ -889,6 +1154,26 @@ export default function KYCChatIntake({ onCaseCreated }: Props) {
                 DB loaded
               </div>
             )}
+            {/* History toggle */}
+            <button
+              onClick={() => { setShowHistory(h => !h); apiFetchSessions().then(setSessions).catch(() => {}) }}
+              style={{
+                padding: '4px 12px', fontSize: 11, fontWeight: 600,
+                background: showHistory ? T.blueLight : T.bg,
+                color: showHistory ? T.blue : T.textMid,
+                border: `1px solid ${showHistory ? T.blueMid : T.border}`,
+                borderRadius: 20, cursor: 'pointer', fontFamily: T.mono,
+              }}
+            >📋 History</button>
+            {/* New session */}
+            <button
+              onClick={startNewSession}
+              style={{
+                padding: '4px 12px', fontSize: 11, fontWeight: 600,
+                background: T.bg, color: T.textMid,
+                border: `1px solid ${T.border}`, borderRadius: 20, cursor: 'pointer',
+              }}
+            >＋ New</button>
             {apiKey ? (
               <div style={{
                 display: 'flex', alignItems: 'center', gap: 5,

@@ -10,41 +10,49 @@ import {
 } from '../components/investigation/InvestigationView'
 import DocumentExtractionPanel from '../components/documents/DocumentExtractionPanel'
 import DocumentUpload from '../components/documents/DocumentUpload'
+import ReviewPanel from '../components/review/ReviewPanel'
 import { formatDateTime } from '../utils'
 
-// ── Identity Discrepancy Banner ────────────────────────────────────────────
+// ── Identity Details Review Panel ─────────────────────────────────────────
+// Always shown when documents have been uploaded so the compliance officer
+// can confirm extracted details are correct or flag/correct discrepancies.
 function IdentityDiscrepancyBanner({
-  caseId, agents, caseData, onResolved,
+  caseId, agents, caseData, documents, onResolved,
 }: {
   caseId: string
   agents: any[]
   caseData: any
+  documents?: any[]
   onResolved: () => void
 }) {
   const [action, setAction] = useState<null | 'confirm' | 'flag'>(null)
-  const [correctName, setCorrectName]            = useState(caseData.subject_name || '')
-  const [correctDob, setCorrectDob]              = useState(caseData.date_of_birth || '')
+  const [correctName, setCorrectName]               = useState(caseData.subject_name || '')
+  const [correctDob, setCorrectDob]                 = useState(caseData.date_of_birth || '')
   const [correctNationality, setCorrectNationality] = useState(caseData.nationality || '')
-  const [notes, setNotes]             = useState('')
-  const [saving, setSaving]           = useState(false)
-  const [error, setError]             = useState('')
+  const [notes, setNotes]   = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError]   = useState('')
 
   const identityAgent = agents.find(a => a.agent_name === 'identity_agent')
-  if (!identityAgent) return null
+  const hasDocs = documents && documents.length > 0
 
-  const flags: string[] = identityAgent.flags || []
+  // Only show when there are uploaded documents — hide otherwise
+  if (!hasDocs) return null
+
+  const flags: string[] = identityAgent?.flags || []
   const hasMismatch = flags.some(f =>
-    ['name_mismatch_critical','name_mismatch','dob_mismatch'].includes(f)
+    ['name_mismatch_critical', 'name_mismatch', 'dob_mismatch'].includes(f)
   )
-  const alreadyConfirmed = flags.includes('officer_confirmed_suspicious')
-  if (!hasMismatch && !alreadyConfirmed) return null
+  const alreadyFlagged = flags.includes('officer_confirmed_suspicious')
 
-  // Extract what the document says from evidence
-  const ev = identityAgent.evidence || {}
-  const nameCheck = ev.name_mismatch_check || {}
-  const dobCheck  = ev.dob_mismatch_check  || {}
-  const docName = nameCheck.document_name || ''
-  const docDob  = dobCheck.document_dob   || ''
+  // Pull extracted doc fields from the first uploaded document
+  const docData = documents?.[0]?.extracted_data || {}
+  const docFields = docData.fields || {}
+  const docFullName = docData.full_name || (docFields.surname && docFields.given_names
+    ? `${docFields.given_names} ${docFields.surname}`
+    : docFields.name || '')
+  const docDob  = docFields.date_of_birth || ''
+  const docNat  = docFields.nationality || docFields.issuing_country || ''
 
   async function submit() {
     if (!action) return
@@ -70,7 +78,8 @@ function IdentityDiscrepancyBanner({
     }
   }
 
-  if (alreadyConfirmed) {
+  // If already flagged as suspicious, show a compact alert banner
+  if (alreadyFlagged) {
     return (
       <div style={{
         padding: '12px 16px', borderRadius: 10, marginBottom: 16,
@@ -85,21 +94,36 @@ function IdentityDiscrepancyBanner({
     )
   }
 
+  // Styling adapts: warning yellow on mismatch, neutral blue-grey when clear
+  const hasMismatchStyle = hasMismatch
+  const bannerBg     = hasMismatchStyle ? '#fffbeb' : '#f0f7ff'
+  const bannerBorder = hasMismatchStyle ? '2px solid #f59e0b' : '1px solid #c7d9f7'
+  const titleColor   = hasMismatchStyle ? '#92400e' : '#1e4072'
+  const subtitleColor= hasMismatchStyle ? '#78350f' : '#3b5a8a'
+  const headerBg     = hasMismatchStyle ? '#fef3c7' : '#e8f0fd'
+  const headerBorder = hasMismatchStyle ? '#fde68a' : '#c7d9f7'
+  const headerLabel  = hasMismatchStyle ? '#92400e' : '#1e4072'
+  const icon         = hasMismatchStyle ? '⚠️' : '🪪'
+  const title        = hasMismatchStyle
+    ? 'Data Entry Discrepancy — Officer Action Required'
+    : 'Document Details Review'
+  const subtitle     = hasMismatchStyle
+    ? "The uploaded document doesn't match what was entered when the case was created. This could be a typo by the officer or a fraudulent document. Please review and take action below."
+    : "Review the extracted document details against the case registration. Confirm they are correct, correct any data entry errors, or flag if something looks suspicious."
+
   return (
     <div style={{
       padding: '16px 18px', borderRadius: 10, marginBottom: 16,
-      background: '#fffbeb', border: '2px solid #f59e0b',
+      background: bannerBg, border: bannerBorder,
     }}>
       <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 12 }}>
-        <span style={{ fontSize: 22, flexShrink: 0 }}>⚠️</span>
+        <span style={{ fontSize: 22, flexShrink: 0 }}>{icon}</span>
         <div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: '#92400e', marginBottom: 4 }}>
-            Data Entry Discrepancy — Officer Action Required
+          <div style={{ fontSize: 14, fontWeight: 700, color: titleColor, marginBottom: 4 }}>
+            {title}
           </div>
-          <div style={{ fontSize: 13, color: '#78350f', lineHeight: 1.6 }}>
-            The uploaded document doesn't match what was entered when the case was created.
-            This could be a <strong>typo by the officer</strong> or a <strong>fraudulent document</strong>.
-            Please review and take action below.
+          <div style={{ fontSize: 13, color: subtitleColor, lineHeight: 1.6 }}>
+            {subtitle}
           </div>
         </div>
       </div>
@@ -107,57 +131,52 @@ function IdentityDiscrepancyBanner({
       {/* Side-by-side comparison */}
       <div style={{
         display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10,
-        marginBottom: 14, padding: '12px', background: '#fef3c7',
-        borderRadius: 8, border: '1px solid #fde68a',
+        marginBottom: 14, padding: '12px', background: headerBg,
+        borderRadius: 8, border: `1px solid ${headerBorder}`,
       }}>
         <div>
-          <div style={{ fontSize: 10, color: '#92400e', fontFamily: 'JetBrains Mono,monospace',
+          <div style={{ fontSize: 10, color: headerLabel, fontFamily: 'JetBrains Mono,monospace',
             textTransform: 'uppercase', marginBottom: 6, fontWeight: 700 }}>
             📋 Case Registration
           </div>
-          {caseData.subject_name && (
-            <div style={{ marginBottom: 4 }}>
-              <div style={{ fontSize: 10, color: '#78350f' }}>Name</div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#1e2a3a',
-                fontFamily: 'JetBrains Mono,monospace' }}>{caseData.subject_name}</div>
-            </div>
-          )}
-          {caseData.date_of_birth && (
-            <div>
-              <div style={{ fontSize: 10, color: '#78350f' }}>Date of Birth</div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#1e2a3a',
-                fontFamily: 'JetBrains Mono,monospace' }}>{caseData.date_of_birth}</div>
-            </div>
-          )}
-          {caseData.nationality && (
-            <div>
-              <div style={{ fontSize: 10, color: '#78350f' }}>Nationality</div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#1e2a3a',
-                fontFamily: 'JetBrains Mono,monospace' }}>{caseData.nationality}</div>
-            </div>
-          )}
+          <div style={{ marginBottom: 4 }}>
+            <div style={{ fontSize: 10, color: subtitleColor }}>Name</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#1e2a3a',
+              fontFamily: 'JetBrains Mono,monospace' }}>{caseData.subject_name || '—'}</div>
+          </div>
+          <div style={{ marginBottom: 4 }}>
+            <div style={{ fontSize: 10, color: subtitleColor }}>Date of Birth</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#1e2a3a',
+              fontFamily: 'JetBrains Mono,monospace' }}>{caseData.date_of_birth || '—'}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: 10, color: subtitleColor }}>Nationality</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#1e2a3a',
+              fontFamily: 'JetBrains Mono,monospace' }}>{caseData.nationality || '—'}</div>
+          </div>
         </div>
         <div>
-          <div style={{ fontSize: 10, color: '#92400e', fontFamily: 'JetBrains Mono,monospace',
+          <div style={{ fontSize: 10, color: headerLabel, fontFamily: 'JetBrains Mono,monospace',
             textTransform: 'uppercase', marginBottom: 6, fontWeight: 700 }}>
             🪪 Extracted from Document
           </div>
-          {docName && (
-            <div style={{ marginBottom: 4 }}>
-              <div style={{ fontSize: 10, color: '#78350f' }}>Name</div>
-              <div style={{ fontSize: 13, fontWeight: 600,
-                color: flags.includes('name_mismatch_critical') || flags.includes('name_mismatch') ? '#dc2626' : '#1e2a3a',
-                fontFamily: 'JetBrains Mono,monospace' }}>{docName}</div>
-            </div>
-          )}
-          {docDob && (
-            <div>
-              <div style={{ fontSize: 10, color: '#78350f' }}>Date of Birth</div>
-              <div style={{ fontSize: 13, fontWeight: 600,
-                color: flags.includes('dob_mismatch') ? '#dc2626' : '#1e2a3a',
-                fontFamily: 'JetBrains Mono,monospace' }}>{docDob}</div>
-            </div>
-          )}
+          <div style={{ marginBottom: 4 }}>
+            <div style={{ fontSize: 10, color: subtitleColor }}>Name</div>
+            <div style={{ fontSize: 13, fontWeight: 600,
+              color: flags.includes('name_mismatch_critical') || flags.includes('name_mismatch') ? '#dc2626' : '#1e2a3a',
+              fontFamily: 'JetBrains Mono,monospace' }}>{docFullName || '—'}</div>
+          </div>
+          <div style={{ marginBottom: 4 }}>
+            <div style={{ fontSize: 10, color: subtitleColor }}>Date of Birth</div>
+            <div style={{ fontSize: 13, fontWeight: 600,
+              color: flags.includes('dob_mismatch') ? '#dc2626' : '#1e2a3a',
+              fontFamily: 'JetBrains Mono,monospace' }}>{docDob || '—'}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: 10, color: subtitleColor }}>Nationality</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#1e2a3a',
+              fontFamily: 'JetBrains Mono,monospace' }}>{docNat || '—'}</div>
+          </div>
         </div>
       </div>
 
@@ -165,7 +184,7 @@ function IdentityDiscrepancyBanner({
       {!action ? (
         <div style={{ display: 'flex', gap: 10 }}>
           <button
-            onClick={() => { setAction('confirm'); setCorrectName(docName || caseData.subject_name); setCorrectDob(docDob || caseData.date_of_birth) }}
+            onClick={() => { setAction('confirm'); setCorrectName(docFullName || caseData.subject_name); setCorrectDob(docDob || caseData.date_of_birth) }}
             style={{
               flex: 1, padding: '10px', borderRadius: 8, border: '2px solid #22c55e',
               background: '#f0fdf4', color: '#15803d', fontWeight: 600, fontSize: 13,
@@ -463,6 +482,7 @@ export default function CaseDetailPage() {
   const [loading, setLoading] = useState(true)
   const [polling, setPolling] = useState(false)
 
+  // ── fetchDetail (declared first so saveEdit can call it) ────────────────────
   const fetchDetail = useCallback(async () => {
     if (!id) return
     try {
@@ -490,6 +510,63 @@ export default function CaseDetailPage() {
     const interval = setInterval(fetchDetail, 3000)
     return () => clearInterval(interval)
   }, [polling, fetchDetail])
+
+  // ── Inline edit state ──────────────────────────────────────────────────────
+  const [editOpen, setEditOpen]               = useState(false)
+  const [editName, setEditName]               = useState('')
+  const [editDob, setEditDob]                 = useState('')
+  const [editNationality, setEditNationality] = useState('')
+  const [editNotes, setEditNotes]             = useState('')
+  const [editSaving, setEditSaving]           = useState(false)
+  const [editError, setEditError]             = useState('')
+
+  function openEdit(c: any) {
+    setEditName(c.subject_name || '')
+    setEditDob(c.date_of_birth || '')
+    setEditNationality(c.nationality || '')
+    setEditNotes(c.notes || '')
+    setEditError('')
+    setEditOpen(true)
+  }
+
+  async function saveEdit() {
+    if (!id) return
+    setEditSaving(true); setEditError('')
+    try {
+      await casesApi.update(id, {
+        subject_name: editName,
+        date_of_birth: editDob,
+        nationality: editNationality,
+        notes: editNotes,
+      })
+      setEditOpen(false)
+      await fetchDetail()
+    } catch (e: any) {
+      setEditError(e?.response?.data?.detail || 'Save failed')
+    } finally {
+      setEditSaving(false)
+    }
+  }
+
+  async function saveAndReinvestigate() {
+    if (!id) return
+    setEditSaving(true); setEditError('')
+    try {
+      await casesApi.reinvestigate(id, {
+        subject_name: editName,
+        date_of_birth: editDob,
+        nationality: editNationality,
+        notes: editNotes,
+      })
+      setEditOpen(false)
+      setPolling(true)
+      await fetchDetail()
+    } catch (e: any) {
+      setEditError(e?.response?.data?.detail || 'Re-investigation failed')
+    } finally {
+      setEditSaving(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -524,11 +601,15 @@ export default function CaseDetailPage() {
           <>
             {polling && <span className="badge badge-blue" style={{ animation: 'pulse 2s infinite' }}>● Investigating</span>}
             <StatusBadge status={c.status} />
-            {c.status === 'review' && (
-              <button className="btn btn-primary" onClick={() => navigate('/review')}>
-                Review Queue →
-              </button>
-            )}
+            <button
+              className="btn btn-primary"
+              onClick={() => navigate('/review')}
+              disabled={isInvestigating}
+              title={isInvestigating ? 'Investigation still in progress' : 'Go to Review Queue'}
+              style={{ opacity: isInvestigating ? 0.45 : 1, cursor: isInvestigating ? 'not-allowed' : 'pointer' }}
+            >
+              {isInvestigating ? '⏳ Awaiting Investigation…' : 'Open Review Queue →'}
+            </button>
           </>
         }
       />
@@ -545,26 +626,89 @@ export default function CaseDetailPage() {
 
           {/* Subject info */}
           <div className="card">
-            <span className="card-title">Subject Profile</span>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 20px', fontSize: 13 }}>
-              {[
-                ['Subject Type',   c.subject_type  || '—'],
-                ['Nationality',    c.nationality   || '—'],
-                ['Date of Birth',  c.date_of_birth || '—'],
-                ['Case Number',    c.case_number],
-                ['Status',         c.status],
-                ['Created',        formatDateTime(c.created_at)],
-              ].map(([label, value]) => (
-                <div key={label}>
-                  <div style={{ fontSize: 10, color: '#96a3bb', fontFamily: 'JetBrains Mono, monospace', textTransform: 'uppercase', marginBottom: 1 }}>{label}</div>
-                  <div style={{ color: '#1e2a3a', fontFamily: 'JetBrains Mono, monospace', fontSize: 12 }}>{String(value)}</div>
-                </div>
-              ))}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+              <span className="card-title" style={{ margin: 0 }}>Subject Profile</span>
+              <button
+                onClick={() => editOpen ? setEditOpen(false) : openEdit(c)}
+                style={{ fontSize: 11, padding: '4px 10px', background: editOpen ? '#eef1f8' : '#3b6cf4', color: editOpen ? '#5a6a84' : '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}
+              >
+                {editOpen ? '✕ Cancel' : '✏ Edit Details'}
+              </button>
             </div>
-            {c.notes && (
-              <div style={{ marginTop: 12, padding: '8px 10px', background: '#eef1f8', borderRadius: 6, fontSize: 12, color: '#5a6a84', fontStyle: 'italic' }}>
-                {c.notes}
+
+            {editOpen ? (
+              /* ── Inline edit form ── */
+              <div>
+                {[
+                  { label: 'Full Name',    value: editName,        setter: setEditName,        placeholder: 'e.g. Emily Ann Carter' },
+                  { label: 'Date of Birth', value: editDob,        setter: setEditDob,         placeholder: 'e.g. 10 Feb 1985' },
+                  { label: 'Nationality',  value: editNationality, setter: setEditNationality, placeholder: 'e.g. United States of America' },
+                ].map(({ label, value, setter, placeholder }) => (
+                  <div key={label} style={{ marginBottom: 10 }}>
+                    <div style={{ fontSize: 10, color: '#96a3bb', textTransform: 'uppercase', marginBottom: 3, fontFamily: 'JetBrains Mono, monospace' }}>{label}</div>
+                    <input
+                      value={value}
+                      onChange={e => setter(e.target.value)}
+                      placeholder={placeholder}
+                      style={{ width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #d1d9ee', fontSize: 12, fontFamily: 'JetBrains Mono, monospace', color: '#1e2a3a', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                ))}
+                <div style={{ marginBottom: 10 }}>
+                  <div style={{ fontSize: 10, color: '#96a3bb', textTransform: 'uppercase', marginBottom: 3, fontFamily: 'JetBrains Mono, monospace' }}>Notes</div>
+                  <textarea
+                    value={editNotes}
+                    onChange={e => setEditNotes(e.target.value)}
+                    placeholder="Optional notes"
+                    rows={2}
+                    style={{ width: '100%', padding: '7px 10px', borderRadius: 6, border: '1px solid #d1d9ee', fontSize: 12, color: '#1e2a3a', resize: 'none', boxSizing: 'border-box' }}
+                  />
+                </div>
+                {editError && <div style={{ fontSize: 12, color: '#dc2626', marginBottom: 8 }}>⚠ {editError}</div>}
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <button
+                    onClick={saveEdit}
+                    disabled={editSaving}
+                    style={{ padding: '8px 16px', background: '#eef1f8', color: '#3b6cf4', border: '1px solid #d1d9ee', borderRadius: 7, cursor: 'pointer', fontSize: 12, fontWeight: 600, opacity: editSaving ? 0.6 : 1 }}
+                  >
+                    {editSaving ? 'Saving…' : '✓ Save Only'}
+                  </button>
+                  <button
+                    onClick={saveAndReinvestigate}
+                    disabled={editSaving}
+                    style={{ padding: '8px 16px', background: '#3b6cf4', color: '#fff', border: 'none', borderRadius: 7, cursor: 'pointer', fontSize: 12, fontWeight: 600, opacity: editSaving ? 0.6 : 1 }}
+                  >
+                    {editSaving ? 'Starting…' : '🔄 Save & Re-investigate'}
+                  </button>
+                </div>
+                <div style={{ fontSize: 11, color: '#96a3bb', marginTop: 6 }}>
+                  "Save & Re-investigate" will re-run all agents with the updated details and recalculate the risk score.
+                </div>
               </div>
+            ) : (
+              /* ── Read-only view ── */
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 20px', fontSize: 13 }}>
+                  {[
+                    ['Subject Type',   c.subject_type  || '—'],
+                    ['Nationality',    c.nationality   || '—'],
+                    ['Date of Birth',  c.date_of_birth || '—'],
+                    ['Case Number',    c.case_number],
+                    ['Status',         c.status],
+                    ['Created',        formatDateTime(c.created_at)],
+                  ].map(([label, value]) => (
+                    <div key={label}>
+                      <div style={{ fontSize: 10, color: '#96a3bb', fontFamily: 'JetBrains Mono, monospace', textTransform: 'uppercase', marginBottom: 1 }}>{label}</div>
+                      <div style={{ color: '#1e2a3a', fontFamily: 'JetBrains Mono, monospace', fontSize: 12 }}>{String(value)}</div>
+                    </div>
+                  ))}
+                </div>
+                {c.notes && (
+                  <div style={{ marginTop: 12, padding: '8px 10px', background: '#eef1f8', borderRadius: 6, fontSize: 12, color: '#5a6a84', fontStyle: 'italic' }}>
+                    {c.notes}
+                  </div>
+                )}
+              </>
             )}
           </div>
 
@@ -601,11 +745,12 @@ export default function CaseDetailPage() {
           </div>
         </div>
 
-        {/* Identity Discrepancy Banner — shown when name/DOB mismatch needs officer action */}
+        {/* Identity Details Review — always shown when documents are uploaded */}
         <IdentityDiscrepancyBanner
           caseId={c.id}
           agents={agents || []}
           caseData={c}
+          documents={documents || []}
           onResolved={fetchDetail}
         />
 
@@ -659,26 +804,27 @@ export default function CaseDetailPage() {
           <LiveLog events={events || []} />
         </div>
 
-        {/* Route to review CTA */}
-        {c.status === 'review' && (
-          <div className="card" style={{ border: '1px solid #fde68a', background: 'linear-gradient(135deg, #fef9c320, #ffffff)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        {/* ── Inline Review Panel — shown once investigation completes ── */}
+        {!isInvestigating ? (
+          <div style={{ marginBottom: 16 }}>
+            <ReviewPanel
+              caseDetail={detail}
+              onDecision={() => {
+                setTimeout(() => fetchDetail(), 1200)
+              }}
+            />
+          </div>
+        ) : (
+          /* Greyed-out placeholder while still investigating */
+          <div className="card" style={{ border: '1px solid #e4e9f4', background: '#f8f9fc', opacity: 0.75 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span style={{ fontSize: 20 }}>⏳</span>
               <div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: '#1e2a3a', marginBottom: 4 }}>
-                  Investigation Complete — Pending Human Review
-                </div>
-                <div style={{ fontSize: 12, color: '#5a6a84' }}>
-                  Risk score: <span style={{ color: '#f59e0b', fontFamily: 'JetBrains Mono, monospace', fontWeight: 700 }}>{Math.round(c.risk_score)}</span>
-                  {' '}· {(agents || []).length} agents completed
+                <div style={{ fontSize: 14, fontWeight: 600, color: '#1e2a3a' }}>Investigation in Progress…</div>
+                <div style={{ fontSize: 12, color: '#5a6a84', marginTop: 2 }}>
+                  The compliance review form will appear here once all agents have completed.
                 </div>
               </div>
-              <button
-                className="btn btn-primary"
-                style={{ padding: '10px 20px' }}
-                onClick={() => navigate('/review')}
-              >
-                Open Review Queue →
-              </button>
             </div>
           </div>
         )}

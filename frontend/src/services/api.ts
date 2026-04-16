@@ -1,39 +1,24 @@
 /**
- * services/api.ts
- * Centralised API client for SmartKYC frontend.
+ * SmartKYC API service layer
+ * 
+ * This file replaces (or is the base for) src/services/api.ts
+ * It adds casesApi.update() (PATCH /api/cases/:id) and ensures
+ * documentsApi.upload() returns the full extraction result.
  */
+
+import axios from 'axios'
 
 const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
-async function request<T>(
-  method: string,
-  path: string,
-  body?: unknown,
-): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
-    method,
-    headers: body ? { 'Content-Type': 'application/json' } : {},
-    body: body ? JSON.stringify(body) : undefined,
-  })
-  if (!res.ok) {
-    const detail = await res.json().catch(() => ({}))
-    const err: any = new Error(detail?.detail || `${method} ${path} → ${res.status}`)
-    err.response = { data: detail, status: res.status }
-    throw err
-  }
-  // 204 No Content
-  if (res.status === 204) return undefined as T
-  return res.json()
-}
+const http = axios.create({ baseURL: BASE })
 
-// ─── Cases ────────────────────────────────────────────────────────────────────
-
+// ── Cases ─────────────────────────────────────────────────────────────────────
 export const casesApi = {
-  list: (status?: string) =>
-    request<any[]>('GET', `/api/cases/${status ? `?status=${status}` : ''}`),
+  list: (status?: string, limit = 500) =>
+    http.get('/api/cases/', { params: { ...(status ? { status } : {}), limit } }).then(r => r.data),
 
   get: (id: string) =>
-    request<any>('GET', `/api/cases/${id}`),
+    http.get(`/api/cases/${id}`).then(r => r.data),
 
   create: (data: {
     subject_name: string
@@ -41,79 +26,95 @@ export const casesApi = {
     date_of_birth?: string
     nationality?: string
     notes?: string
-  }) => request<any>('POST', '/api/cases/', data),
+  }) => http.post('/api/cases/', data).then(r => r.data),
+
+  /** PATCH — update subject info after document extraction */
+  update: (id: string, data: {
+    subject_name?: string
+    subject_type?: string
+    date_of_birth?: string
+    nationality?: string
+    notes?: string
+  }) => http.patch(`/api/cases/${id}`, data).then(r => r.data),
 
   startInvestigation: (id: string) =>
-    request<any>('POST', `/api/cases/${id}/start-investigation`),
+    http.post(`/api/cases/${id}/start-investigation`).then(r => r.data),
 
-  dashboardSummary: (limit = 12) =>
-    request<any[]>('GET', `/api/cases/dashboard/summary?limit=${limit}`),
+  /** POST — save updated fields and re-run the full investigation */
+  reinvestigate: (id: string, data: {
+    subject_name?: string
+    subject_type?: string
+    date_of_birth?: string
+    nationality?: string
+    notes?: string
+  }) => http.post(`/api/cases/${id}/reinvestigate`, data).then(r => r.data),
 
   getEvents: (id: string) =>
-    request<any[]>('GET', `/api/cases/${id}/events`),
+    http.get(`/api/cases/${id}/events`).then(r => r.data),
+
+  dashboardSummary: (limit = 10) =>
+    http.get('/api/cases/dashboard/summary', { params: { limit } }).then(r => r.data),
 }
 
-// ─── Documents ────────────────────────────────────────────────────────────────
-
+// ── Documents ─────────────────────────────────────────────────────────────────
 export const documentsApi = {
-  upload: async (
-    caseId: string,
-    file: File,
-    documentType?: string,
-  ): Promise<any> => {
-    const form = new FormData()
-    form.append('file', file)
-    if (documentType) form.append('document_type', documentType)
-
-    const res = await fetch(`${BASE}/api/documents/upload/${caseId}`, {
-      method: 'POST',
-      body: form,
-    })
-    if (!res.ok) {
-      const detail = await res.json().catch(() => ({}))
-      const err: any = new Error(detail?.detail || `Upload failed: ${res.status}`)
-      err.response = { data: detail, status: res.status }
-      throw err
-    }
-    return res.json()
+  /**
+   * Upload an ID document for a case.
+   * Returns the full server response including:
+   *   - document_id, document_type, filename, file_size
+   *   - extracted_data  (persisted extraction with all fields)
+   *   - extraction      (full live extraction result, including full_name,
+   *                      overall_confidence, extraction_method, etc.)
+   */
+  upload: (caseId: string, file: File, documentType?: string) => {
+    const fd = new FormData()
+    fd.append('file', file)
+    if (documentType) fd.append('document_type', documentType)
+    return http
+      .post(`/api/documents/upload/${caseId}`, fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      .then(r => r.data)
   },
 
   getExtractions: (documentId: string) =>
-    request<any[]>('GET', `/api/documents/${documentId}/extractions`),
+    http.get(`/api/documents/${documentId}/extractions`).then(r => r.data),
 }
 
-// ─── Reviews ─────────────────────────────────────────────────────────────────
-
+// ── Reviews ───────────────────────────────────────────────────────────────────
 export const reviewsApi = {
-  getQueue: (sort: 'date' | 'risk' = 'date') =>
-    request<any[]>('GET', `/api/reviews/queue?sort=${sort}`),
+  list: () => http.get('/api/reviews/').then(r => r.data),
 
-  submit: (data: {
-    case_id: string
+  getQueue: (sort?: string) =>
+    http.get('/api/reviews/queue', { params: sort ? { sort } : {} }).then(r => r.data),
+
+  submit: (caseId: string, data: {
     decision: string
+    reviewer_name: string
     comments?: string
-    reviewer_name?: string
-    risk_override?: number
-  }) => request<any>('POST', '/api/reviews/', data),
-
-  getHistory: (caseId: string) =>
-    request<any[]>('GET', `/api/reviews/history/${caseId}`),
+  }) => http.post('/api/reviews/', { ...data, case_id: caseId }).then(r => r.data),
 }
 
-// ─── Authorities ─────────────────────────────────────────────────────────────
+// ── Chat history ──────────────────────────────────────────────────────────────
+export const chatApi = {
+  listSessions: () =>
+    http.get('/api/chat/history').then(r => r.data),
 
+  getSession: (sessionId: string) =>
+    http.get(`/api/chat/history/${sessionId}`).then(r => r.data),
+
+  saveSession: (data: {
+    session_id: string
+    started_at: string
+    messages: any[]
+    cases_created: string[]
+  }) => http.post('/api/chat/history', data).then(r => r.data),
+
+  deleteSession: (sessionId: string) =>
+    http.delete(`/api/chat/history/${sessionId}`).then(r => r.data),
+}
+
+// ── Authorities ───────────────────────────────────────────────────────────────
 export const authoritiesApi = {
-  list: () =>
-    request<any[]>('GET', '/api/authorities/'),
-
-  forSubject: (params: {
-    subject_type?: string
-    nationality?: string
-    document_types?: string
-  }) => {
-    const qs = new URLSearchParams(
-      Object.fromEntries(Object.entries(params).filter(([, v]) => v)) as Record<string, string>
-    ).toString()
-    return request<any>('GET', `/api/authorities/by-subject${qs ? `?${qs}` : ''}`)
-  },
+  list: () => http.get('/api/authorities/').then(r => r.data),
 }

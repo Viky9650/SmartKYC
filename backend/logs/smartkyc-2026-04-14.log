@@ -1,0 +1,369 @@
+2026-04-14 12:44:01,191 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-14.log
+2026-04-14 12:44:01,200 [INFO] app.main: SmartKYC starting up...
+2026-04-14 12:45:06,419 [DEBUG] app.services.document_service: [Vision] Calling Gemini Vision for US_PASSPORT (image/png, 4072576 bytes)
+2026-04-14 12:45:07,514 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-14 12:45:13,972 [WARNING] app.services.document_service: [Vision] Gemini Vision extraction failed for US_PASSPORT: ServerError: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}
+2026-04-14 12:45:13,972 [INFO] app.services.document_service: Gemini Vision unavailable/failed for USA-Passport.png — falling back to OCR
+2026-04-14 12:45:14,373 [WARNING] app.services.document_service: [OCR/tesseract] US_PASSPORT: 0 fields extracted. raw_text length=0. Tip: ensure Gemini Vision key is set for better extraction.
+2026-04-14 12:45:15,895 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (2 messages)
+2026-04-14 12:45:17,161 [DEBUG] app.services.document_service: [Vision] Calling Gemini Vision for US_PASSPORT (image/png, 4072576 bytes)
+2026-04-14 12:45:17,161 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-14 12:45:17,816 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (3 messages)
+2026-04-14 12:45:29,154 [WARNING] app.services.document_service: [Vision] Gemini Vision extraction failed for US_PASSPORT: JSONDecodeError: Unterminated string starting at: line 8 column 5 (char 176)
+2026-04-14 12:45:29,154 [INFO] app.services.document_service: Gemini Vision unavailable/failed for USA-Passport.png — falling back to OCR
+2026-04-14 12:45:29,509 [WARNING] app.services.document_service: [OCR/tesseract] US_PASSPORT: 0 fields extracted. raw_text length=0. Tip: ensure Gemini Vision key is set for better extraction.
+2026-04-14 12:45:29,527 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-14 12:45:31,078 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (4 messages)
+2026-04-14 12:45:35,174 [WARNING] app.services.investigation_service: LLM agent decision failed (Unterminated string starting at: line 5 column 29 (char 108)). Using rule-based fallback.
+2026-04-14 12:45:35,191 [INFO] app.services.verification_service: [VERIFY] OFAC SDN List (MOCK) → clear for 'see fields' [0ms]
+2026-04-14 12:45:35,194 [INFO] app.services.verification_service: [VERIFY] UN Consolidated Sanctions (MOCK) → clear for 'see fields' [0ms]
+2026-04-14 12:45:35,197 [INFO] app.services.verification_service: [VERIFY] EU Consolidated Sanctions (MOCK) → clear for 'see fields' [0ms]
+2026-04-14 12:45:35,209 [INFO] app.services.investigation_service: [1ee6a181] Sanctions Screening Agent (mandatory) score=10 flags=[]
+2026-04-14 12:45:35,218 [INFO] app.services.verification_service: [VERIFY] Global News Intelligence (MOCK) → clear for 'see fields' [0ms]
+2026-04-14 12:45:35,220 [INFO] app.services.verification_service: [VERIFY] Dow Jones Risk & Compliance (MOCK) → clear for 'see fields' [0ms]
+2026-04-14 12:45:35,225 [INFO] app.services.investigation_service: [1ee6a181] Adverse Media Agent (mandatory) score=5 flags=[]
+2026-04-14 12:45:35,227 [INFO] agent.identity_agent: IdentityAgent running for case 1ee6a181-9868-4628-acbc-5798b541f362
+2026-04-14 12:45:35,229 [INFO] app.services.verification_service: [VERIFY] Passport Validation (MOCK) → clear for 'see fields' [0ms]
+2026-04-14 12:45:35,232 [INFO] app.services.investigation_service: [1ee6a181] Identity Verification Agent (mandatory) score=15 flags=[]
+2026-04-14 12:46:53,657 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (4 messages)
+2026-04-14 13:53:16,087 [INFO] app.main: SmartKYC shutting down...
+2026-04-14 13:53:16,994 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-14.log
+2026-04-14 13:53:17,002 [INFO] app.main: SmartKYC starting up...
+2026-04-14 13:57:14,544 [INFO] app.main: SmartKYC shutting down...
+2026-04-14 13:57:19,794 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-14.log
+2026-04-14 13:57:19,803 [INFO] app.main: SmartKYC starting up...
+2026-04-14 13:58:04,269 [INFO] app.main: SmartKYC shutting down...
+2026-04-14 13:58:05,048 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-14.log
+2026-04-14 13:58:05,056 [INFO] app.main: SmartKYC starting up...
+2026-04-14 14:05:28,553 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-14.log
+2026-04-14 14:05:28,561 [INFO] app.main: SmartKYC starting up...
+2026-04-14 14:06:43,066 [DEBUG] app.services.document_service: [Vision] Calling Gemini Vision for US_PASSPORT (image/png, 4072576 bytes)
+2026-04-14 14:06:43,670 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-14 14:06:57,678 [WARNING] app.services.document_service: [Vision] Gemini Vision extraction failed for US_PASSPORT: JSONDecodeError: Unterminated string starting at: line 8 column 23 (char 194)
+2026-04-14 14:06:57,679 [INFO] app.services.document_service: Gemini Vision unavailable/failed for USA-Passport.png — falling back to OCR
+2026-04-14 14:06:58,054 [WARNING] app.services.document_service: [OCR/tesseract] US_PASSPORT: 0 fields extracted. raw_text length=0. Tip: ensure Gemini Vision key is set for better extraction.
+2026-04-14 14:06:58,071 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-14 14:07:01,839 [ERROR] app.core.llm_router: Gemini text completion failed: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}
+2026-04-14 14:07:01,839 [WARNING] app.core.llm_router: No LLM API key configured — using deterministic fallback
+2026-04-14 14:07:01,862 [INFO] app.services.verification_service: [VERIFY] OFAC SDN List (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 14:07:01,864 [INFO] app.services.verification_service: [VERIFY] UN Consolidated Sanctions (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 14:07:01,866 [INFO] app.services.verification_service: [VERIFY] EU Consolidated Sanctions (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 14:07:01,873 [INFO] app.services.investigation_service: [e43017e6] Sanctions Screening Agent (mandatory) score=10 flags=[]
+2026-04-14 14:07:01,877 [INFO] app.services.verification_service: [VERIFY] Global News Intelligence (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 14:07:01,879 [INFO] app.services.verification_service: [VERIFY] Dow Jones Risk & Compliance (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 14:07:01,883 [INFO] app.services.investigation_service: [e43017e6] Adverse Media Agent (mandatory) score=5 flags=[]
+2026-04-14 14:07:01,885 [INFO] agent.identity_agent: IdentityAgent running for case e43017e6-07d2-4137-8012-2f755a6cf316
+2026-04-14 14:07:01,886 [INFO] app.services.verification_service: [VERIFY] Passport Validation (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 14:07:01,891 [INFO] app.services.investigation_service: [e43017e6] Identity Verification Agent (mandatory) score=15 flags=[]
+2026-04-14 14:07:20,579 [DEBUG] app.services.document_service: [Vision] Calling Gemini Vision for IN_PAN (image/jpeg, 999517 bytes)
+2026-04-14 14:07:20,579 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-14 14:07:27,212 [INFO] app.services.document_service: Gemini Vision extracted 4 fields from IN_PAN
+2026-04-14 14:07:27,213 [INFO] app.services.document_service: [Vision] IN_PAN: 5 fields, conf=0.99
+2026-04-14 14:07:27,244 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-14 14:07:35,850 [ERROR] app.core.llm_router: Gemini text completion failed: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}
+2026-04-14 14:07:35,850 [WARNING] app.core.llm_router: No LLM API key configured — using deterministic fallback
+2026-04-14 14:07:35,870 [INFO] app.services.verification_service: [VERIFY] OFAC SDN List (MOCK) → clear for 'TWITTERPREET SINGH' [0ms]
+2026-04-14 14:07:35,873 [INFO] app.services.verification_service: [VERIFY] UN Consolidated Sanctions (MOCK) → clear for 'TWITTERPREET SINGH' [0ms]
+2026-04-14 14:07:35,875 [INFO] app.services.verification_service: [VERIFY] EU Consolidated Sanctions (MOCK) → clear for 'TWITTERPREET SINGH' [0ms]
+2026-04-14 14:07:35,881 [INFO] app.services.investigation_service: [1c5ce46d] Sanctions Screening Agent (mandatory) score=10 flags=[]
+2026-04-14 14:07:35,886 [INFO] app.services.verification_service: [VERIFY] Global News Intelligence (MOCK) → clear for 'TWITTERPREET SINGH' [0ms]
+2026-04-14 14:07:35,888 [INFO] app.services.verification_service: [VERIFY] Dow Jones Risk & Compliance (MOCK) → clear for 'TWITTERPREET SINGH' [0ms]
+2026-04-14 14:07:35,892 [INFO] app.services.investigation_service: [1c5ce46d] Adverse Media Agent (mandatory) score=5 flags=[]
+2026-04-14 14:07:35,894 [INFO] agent.identity_agent: IdentityAgent running for case 1c5ce46d-1eab-412c-8bd7-c52ba31e9953
+2026-04-14 14:07:35,897 [INFO] app.services.verification_service: [VERIFY] Passport Validation (MOCK) → clear for 'TWITTERPREET SINGH' [0ms]
+2026-04-14 14:07:35,901 [INFO] app.services.investigation_service: [1c5ce46d] Identity Verification Agent (mandatory) score=15 flags=[]
+2026-04-14 14:11:54,436 [INFO] app.main: SmartKYC shutting down...
+2026-04-14 14:11:55,242 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-14.log
+2026-04-14 14:11:55,251 [INFO] app.main: SmartKYC starting up...
+2026-04-14 14:12:19,601 [INFO] app.main: SmartKYC shutting down...
+2026-04-14 14:12:20,253 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-14.log
+2026-04-14 14:12:20,261 [INFO] app.main: SmartKYC starting up...
+2026-04-14 14:12:34,455 [INFO] app.main: SmartKYC shutting down...
+2026-04-14 14:12:35,112 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-14.log
+2026-04-14 14:12:35,120 [INFO] app.main: SmartKYC starting up...
+2026-04-14 14:13:14,410 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (4 messages)
+2026-04-14 14:13:27,875 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (4 messages)
+2026-04-14 14:13:38,102 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (4 messages)
+2026-04-14 14:16:53,230 [INFO] app.main: SmartKYC shutting down...
+2026-04-14 14:16:56,781 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-14.log
+2026-04-14 14:16:56,789 [INFO] app.main: SmartKYC starting up...
+2026-04-14 14:17:26,107 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (4 messages)
+2026-04-14 14:17:30,332 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (4 messages)
+2026-04-14 14:17:43,104 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (4 messages)
+2026-04-14 14:17:56,449 [DEBUG] app.services.document_service: [Vision] Calling Gemini Vision for US_PASSPORT (image/png, 4072576 bytes)
+2026-04-14 14:17:56,931 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-14 14:17:57,200 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (6 messages)
+2026-04-14 14:18:14,391 [WARNING] app.services.document_service: [Vision] Gemini Vision extraction failed for US_PASSPORT: ServerError: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}
+2026-04-14 14:18:14,391 [INFO] app.services.document_service: Gemini Vision unavailable/failed for USA-Passport.png — falling back to OCR
+2026-04-14 14:18:14,856 [WARNING] app.services.document_service: [OCR/tesseract] US_PASSPORT: 0 fields extracted. raw_text length=0. Tip: ensure Gemini Vision key is set for better extraction.
+2026-04-14 14:18:14,873 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-14 14:18:15,677 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (9 messages)
+2026-04-14 14:18:15,767 [ERROR] app.core.llm_router: Gemini text completion failed: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}
+2026-04-14 14:18:15,768 [WARNING] app.core.llm_router: No LLM API key configured — using deterministic fallback
+2026-04-14 14:18:15,791 [INFO] agent.identity_agent: IdentityAgent running for case 45d8ac0d-60b0-46e6-bf8f-b8a963a273ea
+2026-04-14 14:18:15,795 [INFO] app.services.verification_service: [VERIFY] Passport Validation (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 14:18:15,801 [INFO] app.services.investigation_service: [45d8ac0d] Identity Verification Agent (mandatory) score=15 flags=[]
+2026-04-14 14:18:15,804 [INFO] app.services.verification_service: [VERIFY] OFAC SDN List (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 14:18:15,805 [INFO] app.services.verification_service: [VERIFY] UN Consolidated Sanctions (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 14:18:15,807 [INFO] app.services.verification_service: [VERIFY] EU Consolidated Sanctions (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 14:18:15,812 [INFO] app.services.investigation_service: [45d8ac0d] Sanctions Screening Agent (mandatory) score=10 flags=[]
+2026-04-14 14:18:15,816 [INFO] app.services.verification_service: [VERIFY] Global News Intelligence (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 14:18:15,817 [INFO] app.services.verification_service: [VERIFY] Dow Jones Risk & Compliance (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 14:18:15,821 [INFO] app.services.investigation_service: [45d8ac0d] Adverse Media Agent (mandatory) score=5 flags=[]
+2026-04-14 14:20:49,282 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (9 messages)
+2026-04-14 14:20:57,481 [DEBUG] app.services.document_service: [Vision] Calling Gemini Vision for IN_PAN (image/jpeg, 999517 bytes)
+2026-04-14 14:20:57,481 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-14 14:20:58,266 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (11 messages)
+2026-04-14 14:21:05,937 [INFO] app.services.document_service: Gemini Vision extracted 4 fields from IN_PAN
+2026-04-14 14:21:05,937 [INFO] app.services.document_service: [Vision] IN_PAN: 5 fields, conf=0.99
+2026-04-14 14:21:05,975 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-14 14:21:06,784 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (14 messages)
+2026-04-14 14:21:11,897 [WARNING] app.services.investigation_service: LLM agent decision failed (Unterminated string starting at: line 5 column 29 (char 108)). Using rule-based fallback.
+2026-04-14 14:21:11,903 [INFO] agent.identity_agent: IdentityAgent running for case d247a664-c34e-4107-a0f0-43c95652bf5d
+2026-04-14 14:21:11,905 [INFO] app.services.verification_service: [VERIFY] Passport Validation (MOCK) → clear for 'TWITTERPREET SINGH' [0ms]
+2026-04-14 14:21:11,908 [INFO] app.services.investigation_service: [d247a664] Identity Verification Agent (mandatory) score=15 flags=[]
+2026-04-14 14:21:11,912 [INFO] app.services.verification_service: [VERIFY] OFAC SDN List (MOCK) → clear for 'TWITTERPREET SINGH' [0ms]
+2026-04-14 14:21:11,914 [INFO] app.services.verification_service: [VERIFY] UN Consolidated Sanctions (MOCK) → clear for 'TWITTERPREET SINGH' [0ms]
+2026-04-14 14:21:11,916 [INFO] app.services.verification_service: [VERIFY] EU Consolidated Sanctions (MOCK) → clear for 'TWITTERPREET SINGH' [0ms]
+2026-04-14 14:21:11,920 [INFO] app.services.investigation_service: [d247a664] Sanctions Screening Agent (mandatory) score=10 flags=[]
+2026-04-14 14:21:11,924 [INFO] app.services.verification_service: [VERIFY] Global News Intelligence (MOCK) → clear for 'TWITTERPREET SINGH' [0ms]
+2026-04-14 14:21:11,926 [INFO] app.services.verification_service: [VERIFY] Dow Jones Risk & Compliance (MOCK) → clear for 'TWITTERPREET SINGH' [0ms]
+2026-04-14 14:21:11,933 [INFO] app.services.investigation_service: [d247a664] Adverse Media Agent (mandatory) score=5 flags=[]
+2026-04-14 14:21:40,230 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (14 messages)
+2026-04-14 14:25:18,456 [INFO] app.main: SmartKYC shutting down...
+2026-04-14 14:25:19,254 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-14.log
+2026-04-14 14:25:19,262 [INFO] app.main: SmartKYC starting up...
+2026-04-14 14:26:15,013 [INFO] app.main: SmartKYC shutting down...
+2026-04-14 14:26:15,691 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-14.log
+2026-04-14 14:26:15,701 [INFO] app.main: SmartKYC starting up...
+2026-04-14 14:26:58,707 [INFO] app.main: SmartKYC shutting down...
+2026-04-14 14:26:59,455 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-14.log
+2026-04-14 14:26:59,464 [INFO] app.main: SmartKYC starting up...
+2026-04-14 14:27:06,164 [INFO] app.main: SmartKYC shutting down...
+2026-04-14 14:27:06,800 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-14.log
+2026-04-14 14:27:06,809 [INFO] app.main: SmartKYC starting up...
+2026-04-14 14:27:12,906 [INFO] app.main: SmartKYC shutting down...
+2026-04-14 14:27:13,545 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-14.log
+2026-04-14 14:27:13,554 [INFO] app.main: SmartKYC starting up...
+2026-04-14 14:27:20,781 [INFO] app.main: SmartKYC shutting down...
+2026-04-14 14:27:21,450 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-14.log
+2026-04-14 14:27:21,460 [INFO] app.main: SmartKYC starting up...
+2026-04-14 14:28:22,364 [INFO] app.main: SmartKYC shutting down...
+2026-04-14 14:28:23,040 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-14.log
+2026-04-14 14:28:23,048 [INFO] app.main: SmartKYC starting up...
+2026-04-14 14:29:41,446 [INFO] app.main: SmartKYC shutting down...
+2026-04-14 14:29:42,113 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-14.log
+2026-04-14 14:29:42,123 [INFO] app.main: SmartKYC starting up...
+2026-04-14 14:30:52,438 [INFO] app.main: SmartKYC shutting down...
+2026-04-14 14:30:53,291 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-14.log
+2026-04-14 14:30:53,300 [INFO] app.main: SmartKYC starting up...
+2026-04-14 14:34:59,585 [INFO] app.main: SmartKYC shutting down...
+2026-04-14 14:39:16,467 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-14.log
+2026-04-14 14:39:16,477 [INFO] app.main: SmartKYC starting up...
+2026-04-14 14:39:44,658 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (14 messages)
+2026-04-14 14:39:51,890 [DEBUG] app.services.document_service: [Vision] Calling Gemini Vision for US_PASSPORT (image/png, 4072576 bytes)
+2026-04-14 14:39:52,415 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-14 14:39:52,644 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (16 messages)
+2026-04-14 14:40:04,231 [WARNING] app.services.document_service: [Vision] Gemini Vision extraction failed for US_PASSPORT: JSONDecodeError: Unterminated string starting at: line 8 column 5 (char 176)
+2026-04-14 14:40:04,232 [INFO] app.services.document_service: Gemini Vision unavailable/failed for USA-Passport.png — falling back to OCR
+2026-04-14 14:40:04,694 [WARNING] app.services.document_service: [OCR/tesseract] US_PASSPORT: 0 fields extracted. raw_text length=0. Tip: ensure Gemini Vision key is set for better extraction.
+2026-04-14 14:40:04,712 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-14 14:40:05,374 [ERROR] app.core.llm_router: Gemini text completion failed: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}
+2026-04-14 14:40:05,374 [WARNING] app.core.llm_router: No LLM API key configured — using deterministic fallback
+2026-04-14 14:40:05,386 [INFO] app.services.verification_service: [VERIFY] Global News Intelligence (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 14:40:05,387 [INFO] app.services.verification_service: [VERIFY] Dow Jones Risk & Compliance (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 14:40:05,393 [INFO] app.services.investigation_service: [e1c9fd8d] Adverse Media Agent (mandatory) score=5 flags=[]
+2026-04-14 14:40:05,399 [INFO] agent.identity_agent: IdentityAgent running for case e1c9fd8d-95c9-4119-a14b-a02222004fab
+2026-04-14 14:40:05,401 [INFO] app.services.verification_service: [VERIFY] Passport Validation (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 14:40:05,405 [INFO] app.services.investigation_service: [e1c9fd8d] Identity Verification Agent (mandatory) score=15 flags=[]
+2026-04-14 14:40:05,408 [INFO] app.services.verification_service: [VERIFY] OFAC SDN List (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 14:40:05,409 [INFO] app.services.verification_service: [VERIFY] UN Consolidated Sanctions (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 14:40:05,410 [INFO] app.services.verification_service: [VERIFY] EU Consolidated Sanctions (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 14:40:05,414 [INFO] app.services.investigation_service: [e1c9fd8d] Sanctions Screening Agent (mandatory) score=10 flags=[]
+2026-04-14 14:40:05,516 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (19 messages)
+2026-04-14 14:40:27,564 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (19 messages)
+2026-04-14 14:40:46,466 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (19 messages)
+2026-04-14 14:40:51,147 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (19 messages)
+2026-04-14 14:41:14,281 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (19 messages)
+2026-04-14 14:41:23,918 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-14 14:41:24,729 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (22 messages)
+2026-04-14 14:41:37,500 [ERROR] app.core.llm_router: Gemini text completion failed: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}
+2026-04-14 14:41:37,500 [WARNING] app.core.llm_router: No LLM API key configured — using deterministic fallback
+2026-04-14 14:41:37,517 [INFO] app.services.verification_service: [VERIFY] Global News Intelligence (MOCK) → clear for 'How many cases are there for reveiw' [0ms]
+2026-04-14 14:41:37,521 [INFO] app.services.verification_service: [VERIFY] Dow Jones Risk & Compliance (MOCK) → clear for 'How many cases are there for reveiw' [0ms]
+2026-04-14 14:41:37,528 [INFO] app.services.investigation_service: [62754505] Adverse Media Agent (mandatory) score=5 flags=[]
+2026-04-14 14:41:37,529 [INFO] agent.identity_agent: IdentityAgent running for case 62754505-3732-48aa-afa7-cf8b266fb21e
+2026-04-14 14:41:37,531 [INFO] app.services.verification_service: [VERIFY] Passport Validation (MOCK) → clear for 'How many cases are there for reveiw' [0ms]
+2026-04-14 14:41:37,536 [INFO] app.services.investigation_service: [62754505] Identity Verification Agent (mandatory) score=15 flags=[]
+2026-04-14 14:41:37,540 [INFO] app.services.verification_service: [VERIFY] OFAC SDN List (MOCK) → clear for 'How many cases are there for reveiw' [0ms]
+2026-04-14 14:41:37,541 [INFO] app.services.verification_service: [VERIFY] UN Consolidated Sanctions (MOCK) → clear for 'How many cases are there for reveiw' [0ms]
+2026-04-14 14:41:37,544 [INFO] app.services.verification_service: [VERIFY] EU Consolidated Sanctions (MOCK) → clear for 'How many cases are there for reveiw' [0ms]
+2026-04-14 14:41:37,553 [INFO] app.services.investigation_service: [62754505] Sanctions Screening Agent (mandatory) score=10 flags=[]
+2026-04-14 14:44:45,795 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (22 messages)
+2026-04-14 14:44:52,142 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (22 messages)
+2026-04-14 14:47:28,273 [INFO] app.main: SmartKYC shutting down...
+2026-04-14 21:38:21,407 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-14.log
+2026-04-14 21:38:21,416 [INFO] app.main: SmartKYC starting up...
+2026-04-14 21:38:57,012 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (22 messages)
+2026-04-14 21:39:14,798 [DEBUG] app.services.document_service: [Vision] Calling Gemini Vision for US_PASSPORT (image/png, 4072576 bytes)
+2026-04-14 21:39:15,444 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-14 21:39:15,540 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (24 messages)
+2026-04-14 21:39:37,375 [WARNING] app.services.document_service: [Vision] JSON parse failed (Expecting value: line 14 column 15 (char 364)), attempting partial recovery
+2026-04-14 21:39:37,376 [INFO] app.services.document_service: Gemini Vision extracted 9 fields from US_PASSPORT
+2026-04-14 21:39:37,376 [INFO] app.services.document_service: [Vision] US_PASSPORT: 9 fields, conf=0.96
+2026-04-14 21:39:37,420 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-14 21:39:38,233 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (27 messages)
+2026-04-14 21:39:42,565 [WARNING] app.services.investigation_service: LLM agent decision failed (Unterminated string starting at: line 10 column 16 (char 504)). Using rule-based fallback.
+2026-04-14 21:39:42,581 [INFO] app.services.verification_service: [VERIFY] Global News Intelligence (MOCK) → clear for 'EMILY ANN CARTER' [0ms]
+2026-04-14 21:39:42,584 [INFO] app.services.verification_service: [VERIFY] Dow Jones Risk & Compliance (MOCK) → clear for 'EMILY ANN CARTER' [0ms]
+2026-04-14 21:39:42,592 [INFO] app.services.investigation_service: [eb541e06] Adverse Media Agent (mandatory) score=5 flags=[]
+2026-04-14 21:39:42,597 [INFO] app.services.verification_service: [VERIFY] OFAC SDN List (MOCK) → clear for 'EMILY ANN CARTER' [0ms]
+2026-04-14 21:39:42,634 [INFO] app.services.verification_service: [VERIFY] UN Consolidated Sanctions (MOCK) → clear for 'EMILY ANN CARTER' [0ms]
+2026-04-14 21:39:42,637 [INFO] app.services.verification_service: [VERIFY] EU Consolidated Sanctions (MOCK) → clear for 'EMILY ANN CARTER' [0ms]
+2026-04-14 21:39:42,642 [INFO] app.services.investigation_service: [eb541e06] Sanctions Screening Agent (mandatory) score=10 flags=[]
+2026-04-14 21:39:42,644 [INFO] agent.identity_agent: IdentityAgent running for case eb541e06-1e0a-4adb-aa80-261b6f8a1a1a
+2026-04-14 21:39:42,646 [INFO] app.services.verification_service: [VERIFY] Passport Validation (MOCK) → clear for 'EMILY ANN CARTER' [0ms]
+2026-04-14 21:39:42,647 [WARNING] agent.identity_agent: Name mismatch: document='CARTER EMILY ANN' vs case='EMILY ANN CARTER'
+2026-04-14 21:39:42,651 [INFO] app.services.investigation_service: [eb541e06] Identity Verification Agent (mandatory) score=60 flags=['name_mismatch_critical']
+2026-04-14 21:40:15,900 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (27 messages)
+2026-04-14 21:40:33,161 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (29 messages)
+2026-04-14 21:40:53,409 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (31 messages)
+2026-04-14 21:43:28,218 [DEBUG] app.main: Chat session 2026-04-14-gopjyf saved (31 messages)
+2026-04-14 21:44:42,106 [INFO] app.main: SmartKYC shutting down...
+2026-04-14 21:47:35,019 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-14.log
+2026-04-14 21:47:35,028 [INFO] app.main: SmartKYC starting up...
+2026-04-14 21:48:01,558 [DEBUG] app.main: Chat session 2026-04-14-dg6k6h saved (3 messages)
+2026-04-14 21:48:32,348 [DEBUG] app.main: Chat session 2026-04-14-f6v2ux saved (3 messages)
+2026-04-14 21:48:48,932 [DEBUG] app.main: Chat session 2026-04-14-f6v2ux saved (5 messages)
+2026-04-14 21:49:15,840 [DEBUG] app.main: Chat session 2026-04-14-f6v2ux saved (7 messages)
+2026-04-14 21:49:46,742 [DEBUG] app.services.document_service: [Vision] Calling Gemini Vision for US_PASSPORT (image/png, 4072576 bytes)
+2026-04-14 21:49:47,268 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-14 21:49:47,485 [DEBUG] app.main: Chat session 2026-04-14-f6v2ux saved (9 messages)
+2026-04-14 21:50:01,927 [INFO] app.services.document_service: Gemini Vision extracted 9 fields from US_PASSPORT
+2026-04-14 21:50:01,927 [INFO] app.services.document_service: [Vision] US_PASSPORT: 12 fields, conf=0.90
+2026-04-14 21:50:01,966 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-14 21:50:02,783 [DEBUG] app.main: Chat session 2026-04-14-f6v2ux saved (12 messages)
+2026-04-14 21:50:07,254 [WARNING] app.services.investigation_service: LLM agent decision failed (Unterminated string starting at: line 11 column 3 (char 883)). Using rule-based fallback.
+2026-04-14 21:50:07,269 [INFO] agent.identity_agent: IdentityAgent running for case 9c53d1d5-ab34-4dfa-939a-c41818250edc
+2026-04-14 21:50:07,275 [INFO] app.services.verification_service: [VERIFY] Passport Validation (MOCK) → clear for 'CARTER EMILY ANN' [0ms]
+2026-04-14 21:50:07,284 [INFO] app.services.investigation_service: [9c53d1d5] Identity Verification Agent (mandatory) score=15 flags=[]
+2026-04-14 21:50:07,288 [INFO] app.services.verification_service: [VERIFY] OFAC SDN List (MOCK) → clear for 'CARTER EMILY ANN' [0ms]
+2026-04-14 21:50:07,290 [INFO] app.services.verification_service: [VERIFY] UN Consolidated Sanctions (MOCK) → clear for 'CARTER EMILY ANN' [0ms]
+2026-04-14 21:50:07,292 [INFO] app.services.verification_service: [VERIFY] EU Consolidated Sanctions (MOCK) → clear for 'CARTER EMILY ANN' [0ms]
+2026-04-14 21:50:07,296 [INFO] app.services.investigation_service: [9c53d1d5] Sanctions Screening Agent (mandatory) score=10 flags=[]
+2026-04-14 21:50:07,300 [INFO] app.services.verification_service: [VERIFY] Global News Intelligence (MOCK) → clear for 'CARTER EMILY ANN' [0ms]
+2026-04-14 21:50:07,301 [INFO] app.services.verification_service: [VERIFY] Dow Jones Risk & Compliance (MOCK) → clear for 'CARTER EMILY ANN' [0ms]
+2026-04-14 21:50:07,305 [INFO] app.services.investigation_service: [9c53d1d5] Adverse Media Agent (mandatory) score=5 flags=[]
+2026-04-14 21:57:18,943 [INFO] app.main: SmartKYC shutting down...
+2026-04-14 21:57:51,749 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-14.log
+2026-04-14 21:57:51,758 [INFO] app.main: SmartKYC starting up...
+2026-04-14 21:58:07,335 [DEBUG] app.main: Chat session 2026-04-14-zuzgr9 saved (3 messages)
+2026-04-14 21:58:26,348 [DEBUG] app.main: Chat session 2026-04-14-zuzgr9 saved (5 messages)
+2026-04-14 21:58:33,583 [DEBUG] app.services.document_service: [Vision] Calling Gemini Vision for US_PASSPORT (image/png, 4072576 bytes)
+2026-04-14 21:58:34,107 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-14 21:58:34,338 [DEBUG] app.main: Chat session 2026-04-14-zuzgr9 saved (7 messages)
+2026-04-14 21:59:00,347 [WARNING] app.services.document_service: [Vision] JSON parse failed (Expecting property name enclosed in double quotes: line 14 column 25 (char 358)), attempting partial recovery
+2026-04-14 21:59:00,349 [INFO] app.services.document_service: Gemini Vision extracted 8 fields from US_PASSPORT
+2026-04-14 21:59:00,350 [INFO] app.services.document_service: [Vision] US_PASSPORT: 8 fields, conf=0.96
+2026-04-14 21:59:00,393 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-14 21:59:01,211 [DEBUG] app.main: Chat session 2026-04-14-zuzgr9 saved (10 messages)
+2026-04-14 21:59:05,169 [INFO] agent.identity_agent: IdentityAgent running for case 2f52c0a2-ebbe-4386-bbac-4f568959eb35
+2026-04-14 21:59:05,171 [INFO] app.services.verification_service: [VERIFY] Passport Validation (MOCK) → clear for 'EMILY ANN CARTER' [0ms]
+2026-04-14 21:59:05,172 [WARNING] agent.identity_agent: Name mismatch: document='CARTER EMILY ANN' vs case='EMILY ANN CARTER'
+2026-04-14 21:59:05,177 [INFO] app.services.investigation_service: [2f52c0a2] Identity Verification Agent (mandatory) score=60 flags=['name_mismatch_critical']
+2026-04-14 21:59:05,180 [INFO] app.services.verification_service: [VERIFY] Global News Intelligence (MOCK) → clear for 'EMILY ANN CARTER' [0ms]
+2026-04-14 21:59:05,182 [INFO] app.services.verification_service: [VERIFY] Dow Jones Risk & Compliance (MOCK) → clear for 'EMILY ANN CARTER' [0ms]
+2026-04-14 21:59:05,185 [INFO] app.services.investigation_service: [2f52c0a2] Adverse Media Agent (mandatory) score=5 flags=[]
+2026-04-14 21:59:05,188 [INFO] app.services.verification_service: [VERIFY] OFAC SDN List (MOCK) → clear for 'EMILY ANN CARTER' [0ms]
+2026-04-14 21:59:05,189 [INFO] app.services.verification_service: [VERIFY] UN Consolidated Sanctions (MOCK) → clear for 'EMILY ANN CARTER' [0ms]
+2026-04-14 21:59:05,192 [INFO] app.services.verification_service: [VERIFY] EU Consolidated Sanctions (MOCK) → clear for 'EMILY ANN CARTER' [0ms]
+2026-04-14 21:59:05,201 [INFO] app.services.investigation_service: [2f52c0a2] Sanctions Screening Agent (mandatory) score=10 flags=[]
+2026-04-14 22:03:56,348 [INFO] app.main: SmartKYC shutting down...
+2026-04-14 22:04:00,966 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-14.log
+2026-04-14 22:04:00,975 [INFO] app.main: SmartKYC starting up...
+2026-04-14 22:04:25,489 [DEBUG] app.main: Chat session 2026-04-14-uk8h4k saved (3 messages)
+2026-04-14 22:04:36,312 [DEBUG] app.main: Chat session 2026-04-14-uk8h4k saved (5 messages)
+2026-04-14 22:04:51,990 [DEBUG] app.main: Chat session 2026-04-14-uk8h4k saved (7 messages)
+2026-04-14 22:05:05,640 [DEBUG] app.services.document_service: [Vision] Calling Gemini Vision for US_PASSPORT (image/png, 4072576 bytes)
+2026-04-14 22:05:06,166 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-14 22:05:06,377 [DEBUG] app.main: Chat session 2026-04-14-uk8h4k saved (9 messages)
+2026-04-14 22:05:09,501 [WARNING] app.services.document_service: [Vision] Gemini Vision extraction failed for US_PASSPORT: ServerError: 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}
+2026-04-14 22:05:09,501 [INFO] app.services.document_service: Gemini Vision unavailable/failed for USA-Passport.png — falling back to OCR
+2026-04-14 22:05:09,712 [DEBUG] app.services.document_service: Tesseract PSM 3 error: tesseract is not installed or it's not in your PATH. See README file for more information.
+2026-04-14 22:05:09,802 [DEBUG] app.services.document_service: Tesseract PSM 6 error: tesseract is not installed or it's not in your PATH. See README file for more information.
+2026-04-14 22:05:09,893 [DEBUG] app.services.document_service: Tesseract PSM 4 error: tesseract is not installed or it's not in your PATH. See README file for more information.
+2026-04-14 22:05:09,984 [DEBUG] app.services.document_service: Tesseract MRZ pass error: tesseract is not installed or it's not in your PATH. See README file for more information.
+2026-04-14 22:05:09,984 [DEBUG] app.services.document_service: Tesseract: all PSM passes returned empty (image size=(1536, 1024))
+2026-04-14 22:05:09,984 [WARNING] app.services.document_service: [OCR/tesseract] US_PASSPORT: 0 fields extracted. raw_text length=0. Tip: ensure Gemini Vision key is set for better extraction.
+2026-04-14 22:05:10,001 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-14 22:05:10,345 [ERROR] app.core.llm_router: Gemini text completion failed: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 49.68545845s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.5-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '49s'}]}}
+2026-04-14 22:05:10,345 [WARNING] app.core.llm_router: No LLM API key configured — using deterministic fallback
+2026-04-14 22:05:10,363 [INFO] app.services.verification_service: [VERIFY] Global News Intelligence (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 22:05:10,366 [INFO] app.services.verification_service: [VERIFY] Dow Jones Risk & Compliance (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 22:05:10,374 [INFO] app.services.investigation_service: [bdcf78be] Adverse Media Agent (mandatory) score=5 flags=[]
+2026-04-14 22:05:10,379 [INFO] app.services.verification_service: [VERIFY] OFAC SDN List (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 22:05:10,381 [INFO] app.services.verification_service: [VERIFY] UN Consolidated Sanctions (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 22:05:10,384 [INFO] app.services.verification_service: [VERIFY] EU Consolidated Sanctions (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 22:05:10,388 [INFO] app.services.investigation_service: [bdcf78be] Sanctions Screening Agent (mandatory) score=10 flags=[]
+2026-04-14 22:05:10,390 [INFO] agent.identity_agent: IdentityAgent running for case bdcf78be-7f12-4e72-ab2a-272ffba80bdd
+2026-04-14 22:05:10,391 [INFO] app.services.verification_service: [VERIFY] Passport Validation (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 22:05:10,395 [INFO] app.services.investigation_service: [bdcf78be] Identity Verification Agent (mandatory) score=15 flags=[]
+2026-04-14 22:05:10,811 [DEBUG] app.main: Chat session 2026-04-14-uk8h4k saved (12 messages)
+2026-04-14 22:12:33,604 [INFO] app.main: SmartKYC shutting down...
+2026-04-14 22:12:34,370 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-14.log
+2026-04-14 22:12:34,378 [INFO] app.main: SmartKYC starting up...
+2026-04-14 22:27:55,626 [INFO] app.main: SmartKYC shutting down...
+2026-04-14 22:27:58,394 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-14.log
+2026-04-14 22:27:58,403 [INFO] app.main: SmartKYC starting up...
+2026-04-14 22:28:13,825 [DEBUG] app.main: Chat session 2026-04-14-jehq6p saved (3 messages)
+2026-04-14 22:28:23,879 [DEBUG] app.services.document_service: [Vision] Calling Gemini Vision for US_PASSPORT (image/png, 4072576 bytes)
+2026-04-14 22:28:24,440 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-14 22:28:24,618 [DEBUG] app.main: Chat session 2026-04-14-jehq6p saved (5 messages)
+2026-04-14 22:28:26,038 [WARNING] app.services.document_service: [Vision] Gemini Vision extraction failed for US_PASSPORT: ClientError: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 34.048050518s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.5-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '34s'}]}}
+2026-04-14 22:28:26,039 [INFO] app.services.document_service: Gemini Vision unavailable/failed for USA-Passport.png — falling back to OCR
+2026-04-14 22:28:26,212 [DEBUG] app.services.document_service: Tesseract PSM 3 error: tesseract is not installed or it's not in your PATH. See README file for more information.
+2026-04-14 22:28:26,302 [DEBUG] app.services.document_service: Tesseract PSM 6 error: tesseract is not installed or it's not in your PATH. See README file for more information.
+2026-04-14 22:28:26,392 [DEBUG] app.services.document_service: Tesseract PSM 4 error: tesseract is not installed or it's not in your PATH. See README file for more information.
+2026-04-14 22:28:26,485 [DEBUG] app.services.document_service: Tesseract MRZ pass error: tesseract is not installed or it's not in your PATH. See README file for more information.
+2026-04-14 22:28:26,486 [DEBUG] app.services.document_service: Tesseract: all PSM passes returned empty (image size=(1536, 1024))
+2026-04-14 22:28:26,486 [WARNING] app.services.document_service: [OCR/tesseract] US_PASSPORT: 0 fields extracted. raw_text length=0. Tip: ensure Gemini Vision key is set for better extraction.
+2026-04-14 22:28:26,504 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-14 22:28:26,701 [ERROR] app.core.llm_router: Gemini text completion failed: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 33.338942881s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.5-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '33s'}]}}
+2026-04-14 22:28:26,701 [WARNING] app.core.llm_router: No LLM API key configured — using deterministic fallback
+2026-04-14 22:28:26,716 [INFO] agent.identity_agent: IdentityAgent running for case 5a6acb63-00ef-4658-b8af-c0017c7222d2
+2026-04-14 22:28:26,719 [INFO] app.services.verification_service: [VERIFY] Passport Validation (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 22:28:26,731 [INFO] app.services.investigation_service: [5a6acb63] Identity Verification Agent (mandatory) score=15 flags=[]
+2026-04-14 22:28:26,735 [INFO] app.services.verification_service: [VERIFY] OFAC SDN List (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 22:28:26,737 [INFO] app.services.verification_service: [VERIFY] UN Consolidated Sanctions (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 22:28:26,739 [INFO] app.services.verification_service: [VERIFY] EU Consolidated Sanctions (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 22:28:26,745 [INFO] app.services.investigation_service: [5a6acb63] Sanctions Screening Agent (mandatory) score=10 flags=[]
+2026-04-14 22:28:26,748 [INFO] app.services.verification_service: [VERIFY] Global News Intelligence (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 22:28:26,750 [INFO] app.services.verification_service: [VERIFY] Dow Jones Risk & Compliance (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 22:28:26,753 [INFO] app.services.investigation_service: [5a6acb63] Adverse Media Agent (mandatory) score=5 flags=[]
+2026-04-14 22:28:27,313 [DEBUG] app.main: Chat session 2026-04-14-jehq6p saved (8 messages)
+2026-04-14 22:28:39,570 [DEBUG] app.services.document_service: [Vision] Calling Gemini Vision for IN_PAN (image/jpeg, 999517 bytes)
+2026-04-14 22:28:39,570 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-14 22:28:40,135 [WARNING] app.services.document_service: [Vision] Gemini Vision extraction failed for IN_PAN: ClientError: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 19.912805981s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.5-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '19s'}]}}
+2026-04-14 22:28:40,135 [INFO] app.services.document_service: Gemini Vision unavailable/failed for Indian-Pancard.jpeg — falling back to OCR
+2026-04-14 22:28:40,249 [DEBUG] app.services.document_service: Tesseract PSM 3 error: tesseract is not installed or it's not in your PATH. See README file for more information.
+2026-04-14 22:28:40,342 [DEBUG] app.services.document_service: Tesseract PSM 6 error: tesseract is not installed or it's not in your PATH. See README file for more information.
+2026-04-14 22:28:40,437 [DEBUG] app.services.document_service: Tesseract PSM 4 error: tesseract is not installed or it's not in your PATH. See README file for more information.
+2026-04-14 22:28:40,531 [DEBUG] app.services.document_service: Tesseract MRZ pass error: tesseract is not installed or it's not in your PATH. See README file for more information.
+2026-04-14 22:28:40,531 [DEBUG] app.services.document_service: Tesseract: all PSM passes returned empty (image size=(1600, 900))
+2026-04-14 22:28:40,531 [WARNING] app.services.document_service: [OCR/tesseract] IN_PAN: 0 fields extracted. raw_text length=0. Tip: ensure Gemini Vision key is set for better extraction.
+2026-04-14 22:28:40,534 [DEBUG] app.main: Chat session 2026-04-14-jehq6p saved (10 messages)
+2026-04-14 22:28:40,545 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-14 22:28:40,746 [ERROR] app.core.llm_router: Gemini text completion failed: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 19.288891647s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'model': 'gemini-2.5-flash', 'location': 'global'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '19s'}]}}
+2026-04-14 22:28:40,746 [WARNING] app.core.llm_router: No LLM API key configured — using deterministic fallback
+2026-04-14 22:28:40,753 [INFO] agent.identity_agent: IdentityAgent running for case 6b01b804-e9a7-4fde-b767-97c359fa4850
+2026-04-14 22:28:40,755 [INFO] app.services.verification_service: [VERIFY] Passport Validation (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 22:28:40,758 [INFO] app.services.investigation_service: [6b01b804] Identity Verification Agent (mandatory) score=15 flags=[]
+2026-04-14 22:28:40,761 [INFO] app.services.verification_service: [VERIFY] OFAC SDN List (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 22:28:40,764 [INFO] app.services.verification_service: [VERIFY] UN Consolidated Sanctions (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 22:28:40,805 [INFO] app.services.verification_service: [VERIFY] EU Consolidated Sanctions (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 22:28:40,810 [INFO] app.services.investigation_service: [6b01b804] Sanctions Screening Agent (mandatory) score=10 flags=[]
+2026-04-14 22:28:40,813 [INFO] app.services.verification_service: [VERIFY] Global News Intelligence (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 22:28:40,814 [INFO] app.services.verification_service: [VERIFY] Dow Jones Risk & Compliance (MOCK) → clear for 'Processing…' [0ms]
+2026-04-14 22:28:40,817 [INFO] app.services.investigation_service: [6b01b804] Adverse Media Agent (mandatory) score=5 flags=[]
+2026-04-14 22:28:41,351 [DEBUG] app.main: Chat session 2026-04-14-jehq6p saved (13 messages)
+2026-04-14 22:28:56,812 [INFO] app.main: SmartKYC shutting down...

@@ -354,7 +354,7 @@ class RiskAggregationAgent(BaseAgent):
             w = weights.get(r["agent"], 0.10)
             weighted_score += r["risk_score"] * w
             total_weight += w
-            all_flags.extend(r.get("flags", []))
+            all_flags.extend([f for f in r.get("flags", []) if isinstance(f, str)])
 
         final_score = weighted_score / total_weight if total_weight > 0 else 50.0
         final_score = round(min(100, max(0, final_score)), 1)
