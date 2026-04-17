@@ -1,0 +1,60 @@
+{
+  "session_id": "2026-04-17-wuqmpa",
+  "started_at": "2026-04-17T06:15:33.803Z",
+  "messages": [
+    {
+      "id": "welcome",
+      "role": "bot",
+      "text": "Welcome to SmartKYC. Here's what I can do:\n\n• **Launch an investigation** — drop an ID document or type a subject's full name\n• **Answer case queries** — ask about risk levels, pending reviews, flags, counts\n\nExamples: \"How many cases are for review?\", \"List high risk cases\", \"Show pending cases\""
+    },
+    {
+      "role": "user",
+      "file": {
+        "name": "USA-Passport.pdf",
+        "size": 795349
+      },
+      "id": "28nvosmv9x4"
+    },
+    {
+      "role": "bot",
+      "text": "Got it — detecting document type for **USA-Passport.pdf**, extracting fields…",
+      "id": "mhcc7hjxrqo"
+    },
+    {
+      "role": "bot",
+      "text": "Extracted **🇺🇸 US Passport** fields:",
+      "extraction": {
+        "document_schema": "US_PASSPORT",
+        "document_type": "Passport",
+        "country": "United States",
+        "issuer": "U.S. Department of State",
+        "full_name": "",
+        "fields": {},
+        "confidences": {},
+        "overall_confidence": 0.5,
+        "extraction_method": "tesseract",
+        "raw_text": ""
+      },
+      "id": "om655bunyhf"
+    },
+    {
+      "role": "bot",
+      "text": "Launching investigation…",
+      "id": "fxzqi8moznw"
+    },
+    {
+      "role": "bot",
+      "text": "Investigation launched for **this subject** (KYC-2026-CA29). Agents are running — click \"Open case →\" to follow along.",
+      "caseCard": {
+        "caseId": "0883cbfd-a87a-4a01-8e72-24f230eec35b",
+        "caseNumber": "KYC-2026-CA29",
+        "subjectName": "Unknown Subject",
+        "status": "pending"
+      },
+      "id": "l2mxa92udo"
+    }
+  ],
+  "cases_created": [
+    "0883cbfd-a87a-4a01-8e72-24f230eec35b"
+  ]
+}
