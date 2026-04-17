@@ -1,0 +1,90 @@
+{
+  "session_id": "2026-04-14-uk8h4k",
+  "started_at": "2026-04-14T21:04:13.781Z",
+  "messages": [
+    {
+      "id": "welcome",
+      "role": "bot",
+      "text": "Welcome to SmartKYC. Here's what I can do:\n\n• **Launch an investigation** — drop an ID document or type a subject's full name\n• **Answer case queries** — ask about risk levels, pending reviews, flags, counts\n\nExamples: \"How many cases are for review?\", \"List high risk cases\", \"Show pending cases\""
+    },
+    {
+      "role": "user",
+      "text": "How many cases are to be reviewed?",
+      "id": "zvj93cbj7ra"
+    },
+    {
+      "role": "bot",
+      "text": "There are **36 under review cases** out of 50 total.\n\n• EMILY ANN CARTER (KYC-2026-8E62) — low risk, review\n• CARTER EMILY ANN (KYC-2026-94F6) — low risk, review\n• EMILY ANN CARTER (KYC-2026-1B38) — low risk, review\n• How many cases are there for reveiw (KYC-2026-08FC) — low risk, review\n• Processing… (KYC-2026-CCC9) — low risk, review\n…and 31 more",
+      "id": "mw5531jjsv"
+    },
+    {
+      "role": "user",
+      "text": "List the top risk cases",
+      "id": "g4zjpks70aa"
+    },
+    {
+      "role": "bot",
+      "text": "**Recent cases** (50 total):\n\n🟢 **EMILY ANN CARTER** — KYC-2026-8E62 · score 23 · review\n🟢 **CARTER EMILY ANN** — KYC-2026-94F6 · score 11 · review\n🟢 **EMILY ANN CARTER** — KYC-2026-1B38 · score 23 · review\n🟢 **How many cases are there for reveiw** — KYC-2026-08FC · score 11 · review\n🟢 **Processing…** — KYC-2026-CCC9 · score 11 · review\n🟢 **TWITTERPREET SINGH** — KYC-2026-0AEB · score 11 · review\n🟢 **Processing…** — KYC-2026-C58D · score 11 · review\n🟢 **TWITTERPREET SINGH** — KYC-2026-C944 · score 11 · review\n\n…and 42 more. Visit All Cases for the full list.",
+      "id": "nxspdzno9js"
+    },
+    {
+      "role": "user",
+      "text": "What is the highest risk case",
+      "id": "8zqm9s29ewt"
+    },
+    {
+      "role": "bot",
+      "text": "To launch an investigation, drop an ID document here or type a subject's full name (e.g. \"John Smith\").\n\nFor case queries, try:\n• \"How many cases are for review?\"\n• \"List high risk cases\"\n• \"Show pending cases\"",
+      "id": "l97e6nh2bw"
+    },
+    {
+      "role": "user",
+      "file": {
+        "name": "USA-Passport.png",
+        "size": 4072576
+      },
+      "id": "l4lxfqiohsr"
+    },
+    {
+      "role": "bot",
+      "text": "Got it — detecting document type for **USA-Passport.png**, extracting fields…",
+      "id": "cub737y2ah"
+    },
+    {
+      "role": "bot",
+      "text": "Extracted **🇺🇸 US Passport** fields:",
+      "extraction": {
+        "document_schema": "US_PASSPORT",
+        "document_type": "Passport",
+        "country": "United States",
+        "issuer": "U.S. Department of State",
+        "full_name": "",
+        "fields": {},
+        "confidences": {},
+        "overall_confidence": 0.5,
+        "extraction_method": "tesseract",
+        "raw_text": ""
+      },
+      "id": "i8azawerp07"
+    },
+    {
+      "role": "bot",
+      "text": "Launching investigation…",
+      "id": "bgj3gdxohw"
+    },
+    {
+      "role": "bot",
+      "text": "Investigation launched for **this subject** (KYC-2026-1D7F). Agents are running — click \"Open case →\" to follow along.",
+      "caseCard": {
+        "caseId": "bdcf78be-7f12-4e72-ab2a-272ffba80bdd",
+        "caseNumber": "KYC-2026-1D7F",
+        "subjectName": "Unknown Subject",
+        "status": "pending"
+      },
+      "id": "kam0dc5185"
+    }
+  ],
+  "cases_created": [
+    "bdcf78be-7f12-4e72-ab2a-272ffba80bdd"
+  ]
+}

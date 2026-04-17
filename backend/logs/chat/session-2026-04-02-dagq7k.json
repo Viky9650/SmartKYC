@@ -1,0 +1,59 @@
+{
+  "session_id": "2026-04-02-dagq7k",
+  "started_at": "2026-04-02T17:50:29.131Z",
+  "messages": [
+    {
+      "id": "welcome",
+      "role": "assistant",
+      "time": "18:50",
+      "content": "Welcome. Drop an ID document to auto-launch an investigation instantly, or just type a name and I'll handle the rest.\n\nYou can also ask about any existing case — risk scores, flags, agent findings."
+    },
+    {
+      "id": "mnhrtebg95n",
+      "time": "18:50",
+      "role": "user",
+      "content": "Please extract this document and launch the investigation.",
+      "file": {
+        "name": "USA-Passport.png",
+        "type": "image/png"
+      },
+      "extraction": {
+        "document_id": "b1350d44-c162-4e4d-8954-af03120fe50c",
+        "document_type": "US_PASSPORT",
+        "extracted_data": {
+          "fields": {},
+          "confidences": {},
+          "document_schema": "US_PASSPORT"
+        },
+        "filename": "USA-Passport.png",
+        "file_size": 4072576
+      }
+    },
+    {
+      "id": "mnhrtg6o6om",
+      "time": "18:50",
+      "role": "assistant",
+      "content": "Got it — see fields, US_PASSPORT, launching investigation.",
+      "launched": {
+        "id": "4cfd7058-db07-441b-9f21-7db966cdf2d9",
+        "case_number": "KYC-2026-569E",
+        "subject_name": "see fields",
+        "subject_type": "Individual",
+        "date_of_birth": null,
+        "nationality": "American",
+        "notes": null,
+        "status": "pending",
+        "risk_score": 0,
+        "risk_level": "unknown",
+        "created_at": "2026-04-02T17:50:53.278471"
+      }
+    },
+    {
+      "id": "mnhrtshy5y0",
+      "time": "18:51",
+      "role": "assistant",
+      "content": "Investigation launched for see fields (KYC-2026-569E). Agents are running — click \"Open case →\" to follow along."
+    }
+  ],
+  "cases_created": []
+}

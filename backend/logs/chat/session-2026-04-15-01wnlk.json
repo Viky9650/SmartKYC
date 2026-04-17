@@ -1,0 +1,86 @@
+{
+  "session_id": "2026-04-15-01wnlk",
+  "started_at": "2026-04-15T21:25:24.575Z",
+  "messages": [
+    {
+      "id": "welcome",
+      "role": "bot",
+      "text": "Welcome to SmartKYC. Here's what I can do:\n\n• **Launch an investigation** — drop an ID document or type a subject's full name\n• **Answer case queries** — ask about risk levels, pending reviews, flags, counts\n\nExamples: \"How many cases are for review?\", \"List high risk cases\", \"Show pending cases\""
+    },
+    {
+      "role": "user",
+      "file": {
+        "name": "USA-Passport.pdf",
+        "size": 795349
+      },
+      "id": "63tx09exl3k"
+    },
+    {
+      "role": "bot",
+      "text": "Got it — detecting document type for **USA-Passport.pdf**, extracting fields…",
+      "id": "5k3x453iopb"
+    },
+    {
+      "role": "bot",
+      "text": "Extracted **🇺🇸 US Passport** fields:",
+      "extraction": {
+        "document_schema": "US_PASSPORT",
+        "document_type": "Passport",
+        "country": "United States",
+        "issuer": "U.S. Department of State",
+        "full_name": "CARTER EMILY ANN",
+        "fields": {
+          "surname": "CARTER",
+          "given_names": "EMILY ANN",
+          "date_of_birth": "10 FEB 1985",
+          "date_of_expiry": "14 JUL 2033",
+          "date_of_issue": "14 JUL 2023",
+          "passport_number": "NA710A5678RY",
+          "nationality": "UNITED STATES OF AMERICA",
+          "sex": "F",
+          "place_of_birth": "CALIFORNIA, U.S.A.",
+          "document_number": "123456789",
+          "issuing_country": "USA"
+        },
+        "confidences": {
+          "surname": 0.99,
+          "given_names": 0.99,
+          "date_of_birth": 0.99,
+          "date_of_expiry": 0.99,
+          "date_of_issue": 0.7,
+          "passport_number": 0.99,
+          "nationality": 0.99,
+          "sex": 0.99,
+          "place_of_birth": 0.99,
+          "document_number": 0.97,
+          "issuing_country": 0.97
+        },
+        "overall_confidence": 0.96,
+        "extraction_method": "gemini_vision",
+        "raw_text": "",
+        "document_quality": "good",
+        "notes": ""
+      },
+      "id": "60xy2k07o7s"
+    },
+    {
+      "role": "bot",
+      "text": "Launching investigation…",
+      "id": "nw79avfwoqa"
+    },
+    {
+      "role": "bot",
+      "text": "Investigation launched for **CARTER EMILY ANN** (KYC-2026-542B). Agents are running — click \"Open case →\" to follow along.",
+      "caseCard": {
+        "caseId": "2870be2f-d84c-49fd-a799-cc501ad9cec6",
+        "caseNumber": "KYC-2026-542B",
+        "subjectName": "CARTER EMILY ANN",
+        "status": "pending"
+      },
+      "id": "o1xlkcaal5"
+    }
+  ],
+  "cases_created": [
+    "2870be2f-d84c-49fd-a799-cc501ad9cec6"
+  ]
+}

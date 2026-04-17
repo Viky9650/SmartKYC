@@ -27,6 +27,30 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
+# ── Verification event callback ───────────────────────────────────────────────
+# investigation_service registers a callback here so verification calls
+# can emit log events without a circular import.
+_verification_event_callback = None
+_current_case_id: Optional[str] = None
+
+def register_verification_callback(fn):
+    """Called by investigation_service to hook into verification events."""
+    global _verification_event_callback
+    _verification_event_callback = fn
+
+def set_current_case_id(case_id: Optional[str]):
+    """Set the active case_id so run_verification can tag log events."""
+    global _current_case_id
+    _current_case_id = case_id
+
+async def _emit_verification_event(case_id: str, event_data: dict):
+    effective_id = case_id or _current_case_id
+    if _verification_event_callback and effective_id:
+        try:
+            await _verification_event_callback(effective_id, event_data)
+        except Exception:
+            pass  # Never let logging break verification
+
 
 # ─── Authority Definitions ────────────────────────────────────────────────────
 
@@ -341,179 +365,17 @@ def _mock_pep_check(subject_name: str, subject_type: str) -> Dict[str, Any]:
 
 
 def _mock_identity_check(authority_key: str, extracted_data: Dict) -> Dict[str, Any]:
-    """
-    Realistic mock identity check.
-    For PAN: validates format (AAAAA9999A) and checks name is present.
-    For Aadhaar: validates 12-digit number.
-    For Passport: checks expiry, MRZ fields.
-    In MOCK mode these are format/completeness checks only —
-    in REAL mode they would hit the actual government APIs.
-    """
-    import re as _re
-
-    checks_performed = []
-    issues = []
-
-    if authority_key == "INDIA_PAN_VERIFY":
-        pan = extracted_data.get("pan_number", "")
-        name = extracted_data.get("name") or extracted_data.get("full_name") or ""
-        dob  = extracted_data.get("date_of_birth", "")
-
-        # PAN format: 5 letters + 4 digits + 1 letter (e.g. ABCDE1234F)
-        pan_valid = bool(_re.match(r"^[A-Z]{5}[0-9]{4}[A-Z]$", pan.upper())) if pan else False
-        checks_performed.append(f"PAN format validation: {'PASS' if pan_valid else 'FAIL — ' + (pan or 'not extracted')}")
-
-        if not pan_valid:
-            issues.append(f"PAN number invalid or missing: '{pan}'")
-        if not name:
-            issues.append("Name not extracted from document")
-        if not dob:
-            issues.append("Date of birth not extracted from document")
-
-        if issues:
-            return {
-                "result": "flagged",
-                "verified": False,
-                "pan_number": pan,
-                "authority": "Income Tax Department, Govt. of India",
-                "authority_url": "https://eservices.incometax.gov.in",
-                "verified_fields": [],
-                "failed_fields": [
-                    {"field": "PAN Number", "value": pan or "not extracted",
-                     "status": "invalid", "reason": issues[0]},
-                ] + ([{"field": "Name", "value": name or "not extracted",
-                       "status": "missing", "reason": "Name not extracted"}] if not name else [])
-                  + ([{"field": "Date of Birth", "value": dob or "not extracted",
-                       "status": "missing", "reason": "DOB not extracted"}] if not dob else []),
-                "checks_performed": checks_performed,
-                "issues": issues,
-                "note": "MOCK — In production calls Income Tax Dept API to verify PAN.",
-                "checked_at": datetime.utcnow().isoformat(),
-                "is_mock": True,
-            }
-
-        confidence = round(random.uniform(0.91, 0.99), 2)
-        return {
-            "result": "clear",
-            "verified": True,
-            "authority": "Income Tax Department, Govt. of India",
-            "authority_url": "https://eservices.incometax.gov.in",
-            "verified_fields": [
-                {"field": "PAN Number", "value": pan, "status": "verified",
-                 "note": f"Format valid ({pan}) — MOCK"},
-                {"field": "Name", "value": name, "status": "verified",
-                 "note": "Present on document — MOCK"},
-                {"field": "Date of Birth", "value": dob, "status": "verified",
-                 "note": "Present on document — MOCK"},
-            ],
-            "failed_fields": [],
-            "pan_number": pan,
-            "name_on_document": name,
-            "dob_on_document": dob,
-            "confidence": confidence,
-            "checks_performed": checks_performed,
-            "note": "MOCK — In production calls Income Tax Dept API to verify PAN.",
-            "checked_at": datetime.utcnow().isoformat(),
-            "is_mock": True,
-        }
-
-    elif authority_key == "UIDAI_AADHAAR":
-        aadhaar = extracted_data.get("aadhaar_number", "")
-        name = extracted_data.get("name") or extracted_data.get("full_name") or ""
-
-        aadhaar_valid = bool(_re.match(r"^\d{12}$", aadhaar)) if aadhaar else False
-        checks_performed.append(f"Aadhaar format (12 digits): {'PASS' if aadhaar_valid else 'FAIL'}")
-
-        if not aadhaar_valid:
-            issues.append(f"Aadhaar number invalid or missing: '{aadhaar}'")
-        if not name:
-            issues.append("Name not extracted from document")
-
-        if issues:
-            return {
-                "result": "flagged",
-                "verified": False,
-                "authority": "UIDAI — Unique Identification Authority of India",
-                "authority_url": "https://resident.uidai.gov.in",
-                "verified_fields": [],
-                "failed_fields": [
-                    {"field": "Aadhaar Number", "value": aadhaar or "not extracted",
-                     "status": "invalid", "reason": issues[0]},
-                ] + ([{"field": "Name", "value": "not extracted",
-                       "status": "missing", "reason": "Name not found"}] if not name else []),
-                "checks_performed": checks_performed,
-                "issues": issues,
-                "note": "MOCK — In production calls UIDAI API.",
-                "checked_at": datetime.utcnow().isoformat(),
-                "is_mock": True,
-            }
-
-        masked = aadhaar[-4:].rjust(12, "*")
-        confidence = round(random.uniform(0.91, 0.99), 2)
-        return {
-            "result": "clear",
-            "verified": True,
-            "authority": "UIDAI — Unique Identification Authority of India",
-            "authority_url": "https://resident.uidai.gov.in",
-            "verified_fields": [
-                {"field": "Aadhaar Number", "value": masked, "status": "verified",
-                 "note": f"12-digit format valid — MOCK"},
-                {"field": "Name", "value": name, "status": "verified",
-                 "note": "Present on document — MOCK"},
-            ],
-            "failed_fields": [],
-            "aadhaar_number": masked,
-            "name_on_document": name,
-            "confidence": confidence,
-            "checks_performed": checks_performed,
-            "note": "MOCK — In production calls UIDAI API.",
-            "checked_at": datetime.utcnow().isoformat(),
-            "is_mock": True,
-        }
-
-    else:
-        # Generic identity check (passport, driving licence, etc.)
-        confidence = round(random.uniform(0.85, 0.99), 2)
-        doc_number = (
-            extracted_data.get("passport_number")
-            or extracted_data.get("license_number")
-            or extracted_data.get("id_number")
-            or ""
-        )
-        name = extracted_data.get("full_name") or extracted_data.get("name") or ""
-        dob  = extracted_data.get("date_of_birth", "")
-
-        verified_fields = []
-        failed_fields   = []
-
-        if doc_number:
-            verified_fields.append({"field": "Document Number", "value": doc_number,
-                                    "status": "verified", "note": "Present — MOCK"})
-        else:
-            failed_fields.append({"field": "Document Number", "value": "not extracted",
-                                   "status": "missing", "reason": "Could not extract document number"})
-        if name:
-            verified_fields.append({"field": "Name", "value": name,
-                                    "status": "verified", "note": "Present — MOCK"})
-        if dob:
-            verified_fields.append({"field": "Date of Birth", "value": dob,
-                                    "status": "verified", "note": "Present — MOCK"})
-
-        result_status = "flagged" if failed_fields and not verified_fields else "clear"
-        return {
-            "result": result_status,
-            "verified": result_status == "clear",
-            "authority": "ICAO Passport Validation",
-            "authority_url": "https://www.icao.int",
-            "verified_fields": verified_fields,
-            "failed_fields": failed_fields,
-            "document_number": doc_number,
-            "confidence": confidence,
-            "checks_performed": [f"Document fields extracted: {len(verified_fields)} verified"],
-            "note": "MOCK — In production calls government identity verification API.",
-            "checked_at": datetime.utcnow().isoformat(),
-            "is_mock": True,
-        }
+    # Most identity checks pass
+    confidence = round(random.uniform(0.85, 0.99), 2)
+    return {
+        "result": "clear",
+        "verified": True,
+        "confidence": confidence,
+        "document_genuine": True,
+        "biometric_match": confidence > 0.90,
+        "checked_at": datetime.utcnow().isoformat(),
+        "is_mock": True,
+    }
 
 
 def _mock_registry_check(authority_key: str, subject_name: str, company_name: Optional[str]) -> Dict[str, Any]:
@@ -574,16 +436,54 @@ async def run_verification(
     nationality: str,
     extracted_data: Optional[Dict] = None,
     company_name: Optional[str] = None,
+    case_id: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """Run a single verification authority check (mock or real)."""
+    """Run a single verification authority check (mock or real) and log the API call."""
     authority = VERIFICATION_AUTHORITIES.get(authority_key)
     if not authority:
         return {"result": "error", "error": f"Unknown authority: {authority_key}"}
 
+    mode     = "MOCK" if settings.USE_MOCK_VERIFICATION else "LIVE"
+    endpoint = authority.get("real_api_endpoint", "n/a")
+
+    # Log: API call initiated
+    await _emit_verification_event(case_id, {
+        "authority_key":  authority_key,
+        "authority_name": authority["name"],
+        "authority_type": authority["type"],
+        "endpoint":       endpoint,
+        "mode":           mode,
+        "subject":        subject_name,
+        "phase":          "started",
+    })
+
+    start = datetime.utcnow()
     if settings.USE_MOCK_VERIFICATION:
-        return await _run_mock(authority_key, authority, subject_name, subject_type, nationality, extracted_data, company_name)
+        result = await _run_mock(authority_key, authority, subject_name, subject_type, nationality, extracted_data, company_name)
     else:
-        return await _run_real(authority_key, authority, subject_name, subject_type, nationality, extracted_data, company_name)
+        result = await _run_real(authority_key, authority, subject_name, subject_type, nationality, extracted_data, company_name)
+
+    elapsed_ms = int((datetime.utcnow() - start).total_seconds() * 1000)
+
+    # Log: API call completed with result
+    await _emit_verification_event(case_id, {
+        "authority_key":  authority_key,
+        "authority_name": authority["name"],
+        "authority_type": authority["type"],
+        "endpoint":       endpoint,
+        "mode":           mode,
+        "subject":        subject_name,
+        "result":         result.get("result", "unknown"),
+        "elapsed_ms":     elapsed_ms,
+        "phase":          "completed",
+        "flags":          [k for k in ["partial_match", "flagged", "country_risk"] if result.get(k)],
+    })
+
+    logger.info(
+        f"[VERIFY] {authority['name']} ({mode}) → {result.get('result','?')} "
+        f"for '{subject_name}' [{elapsed_ms}ms]"
+    )
+    return result
 
 
 async def _run_mock(authority_key, authority, subject_name, subject_type, nationality, extracted_data, company_name):

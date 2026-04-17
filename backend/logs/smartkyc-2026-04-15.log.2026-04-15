@@ -1,0 +1,106 @@
+2026-04-15 22:24:54,336 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-15.log
+2026-04-15 22:24:54,344 [INFO] app.main: SmartKYC starting up...
+2026-04-15 22:25:33,309 [DEBUG] app.services.document_service: pdf2image: Unable to get page count. Is poppler installed and in PATH?
+2026-04-15 22:25:33,309 [DEBUG] app.services.document_service: [Vision] Calling Gemini Vision for US_PASSPORT (application/pdf, 795349 bytes)
+2026-04-15 22:25:33,776 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-15 22:25:33,897 [DEBUG] app.main: Chat session 2026-04-15-01wnlk saved (3 messages)
+2026-04-15 22:25:50,210 [INFO] app.services.document_service: Gemini Vision extracted 9 fields from US_PASSPORT
+2026-04-15 22:25:50,211 [INFO] app.services.document_service: [Vision] US_PASSPORT: 12 fields, conf=0.96
+2026-04-15 22:25:50,257 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-15 22:25:51,069 [DEBUG] app.main: Chat session 2026-04-15-01wnlk saved (6 messages)
+2026-04-15 22:25:54,822 [INFO] app.services.verification_service: [VERIFY] Global News Intelligence (MOCK) → clear for 'CARTER EMILY ANN' [0ms]
+2026-04-15 22:25:54,823 [INFO] app.services.verification_service: [VERIFY] Dow Jones Risk & Compliance (MOCK) → clear for 'CARTER EMILY ANN' [0ms]
+2026-04-15 22:25:54,828 [INFO] app.services.investigation_service: [2870be2f] Adverse Media Agent (mandatory) score=5 flags=[]
+2026-04-15 22:25:54,831 [INFO] app.services.verification_service: [VERIFY] OFAC SDN List (MOCK) → clear for 'CARTER EMILY ANN' [0ms]
+2026-04-15 22:25:54,833 [INFO] app.services.verification_service: [VERIFY] UN Consolidated Sanctions (MOCK) → clear for 'CARTER EMILY ANN' [0ms]
+2026-04-15 22:25:54,836 [INFO] app.services.verification_service: [VERIFY] EU Consolidated Sanctions (MOCK) → clear for 'CARTER EMILY ANN' [0ms]
+2026-04-15 22:25:54,844 [INFO] app.services.investigation_service: [2870be2f] Sanctions Screening Agent (mandatory) score=10 flags=[]
+2026-04-15 22:25:54,845 [INFO] agent.identity_agent: IdentityAgent running for case 2870be2f-d84c-49fd-a799-cc501ad9cec6
+2026-04-15 22:25:54,847 [INFO] app.services.verification_service: [VERIFY] Passport Validation (MOCK) → clear for 'CARTER EMILY ANN' [0ms]
+2026-04-15 22:25:54,851 [INFO] app.services.investigation_service: [2870be2f] Identity Verification Agent (mandatory) score=15 flags=[]
+2026-04-15 22:28:02,920 [DEBUG] app.services.document_service: [Vision] Calling Gemini Vision for IN_PAN (image/jpeg, 999517 bytes)
+2026-04-15 22:28:02,920 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-15 22:28:03,700 [DEBUG] app.main: Chat session 2026-04-15-xq2i5o saved (3 messages)
+2026-04-15 22:28:05,966 [INFO] app.services.document_service: Gemini Vision extracted 4 fields from IN_PAN
+2026-04-15 22:28:05,966 [INFO] app.services.document_service: [Vision] IN_PAN: 4 fields, conf=0.99
+2026-04-15 22:28:06,004 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-15 22:28:06,808 [DEBUG] app.main: Chat session 2026-04-15-xq2i5o saved (6 messages)
+2026-04-15 22:28:12,246 [WARNING] app.services.investigation_service: LLM agent decision failed (Unterminated string starting at: line 4 column 29 (char 102)). Using rule-based fallback.
+2026-04-15 22:28:12,255 [INFO] app.services.verification_service: [VERIFY] Global News Intelligence (MOCK) → clear for 'TWITTERPREET SINGH' [0ms]
+2026-04-15 22:28:12,258 [INFO] app.services.verification_service: [VERIFY] Dow Jones Risk & Compliance (MOCK) → clear for 'TWITTERPREET SINGH' [0ms]
+2026-04-15 22:28:12,269 [INFO] app.services.investigation_service: [ade58d4d] Adverse Media Agent (mandatory) score=5 flags=[]
+2026-04-15 22:28:12,275 [INFO] app.services.verification_service: [VERIFY] OFAC SDN List (MOCK) → clear for 'TWITTERPREET SINGH' [0ms]
+2026-04-15 22:28:12,277 [INFO] app.services.verification_service: [VERIFY] UN Consolidated Sanctions (MOCK) → clear for 'TWITTERPREET SINGH' [0ms]
+2026-04-15 22:28:12,279 [INFO] app.services.verification_service: [VERIFY] EU Consolidated Sanctions (MOCK) → clear for 'TWITTERPREET SINGH' [0ms]
+2026-04-15 22:28:12,285 [INFO] app.services.investigation_service: [ade58d4d] Sanctions Screening Agent (mandatory) score=10 flags=[]
+2026-04-15 22:28:12,287 [INFO] agent.identity_agent: IdentityAgent running for case ade58d4d-411f-455f-950e-4cca0cd42c4a
+2026-04-15 22:28:12,288 [INFO] app.services.verification_service: [VERIFY] Passport Validation (MOCK) → clear for 'TWITTERPREET SINGH' [0ms]
+2026-04-15 22:28:12,292 [INFO] app.services.investigation_service: [ade58d4d] Identity Verification Agent (mandatory) score=15 flags=[]
+2026-04-15 22:38:02,052 [DEBUG] app.services.document_service: pdf2image: Unable to get page count. Is poppler installed and in PATH?
+2026-04-15 22:38:02,052 [DEBUG] app.services.document_service: [Vision] Calling Gemini Vision for RU_PASSPORT (application/pdf, 3901 bytes)
+2026-04-15 22:38:02,053 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-15 22:38:02,806 [DEBUG] app.main: Chat session 2026-04-15-f1964j saved (3 messages)
+2026-04-15 22:38:07,137 [INFO] app.services.document_service: Gemini Vision extracted 9 fields from RU_PASSPORT
+2026-04-15 22:38:07,137 [INFO] app.services.document_service: [Vision] RU_PASSPORT: 12 fields, conf=0.99
+2026-04-15 22:38:07,188 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-15 22:38:07,999 [DEBUG] app.main: Chat session 2026-04-15-f1964j saved (6 messages)
+2026-04-15 22:38:12,928 [INFO] app.services.verification_service: [VERIFY] Global News Intelligence (MOCK) → flagged for 'PETROV VIKTOR ALEKSEYEVICH' [0ms]
+2026-04-15 22:38:12,929 [INFO] app.services.verification_service: [VERIFY] Dow Jones Risk & Compliance (MOCK) → flagged for 'PETROV VIKTOR ALEKSEYEVICH' [0ms]
+2026-04-15 22:38:12,932 [INFO] app.services.investigation_service: [1f0aed1f] Adverse Media Agent (mandatory) score=80 flags=['adverse_media']
+2026-04-15 22:38:12,936 [INFO] app.services.verification_service: [VERIFY] OFAC SDN List (MOCK) → partial_match for 'PETROV VIKTOR ALEKSEYEVICH' [0ms]
+2026-04-15 22:38:12,939 [INFO] app.services.verification_service: [VERIFY] UN Consolidated Sanctions (MOCK) → partial_match for 'PETROV VIKTOR ALEKSEYEVICH' [0ms]
+2026-04-15 22:38:12,944 [INFO] app.services.verification_service: [VERIFY] EU Consolidated Sanctions (MOCK) → partial_match for 'PETROV VIKTOR ALEKSEYEVICH' [0ms]
+2026-04-15 22:38:12,949 [INFO] app.services.investigation_service: [1f0aed1f] Sanctions Screening Agent (mandatory) score=76 flags=['sanctions_partial_match', 'high_risk_jurisdiction']
+2026-04-15 22:38:12,951 [INFO] agent.identity_agent: IdentityAgent running for case 1f0aed1f-1cbd-4977-83b2-abb87573204f
+2026-04-15 22:38:12,953 [INFO] app.services.verification_service: [VERIFY] Passport Validation (MOCK) → clear for 'PETROV VIKTOR ALEKSEYEVICH' [0ms]
+2026-04-15 22:38:12,957 [INFO] app.services.investigation_service: [1f0aed1f] Identity Verification Agent (mandatory) score=15 flags=[]
+2026-04-15 22:38:12,961 [INFO] app.services.investigation_service: [1f0aed1f] Transaction Analysis Agent (llm_decided) score=10 flags=[]
+2026-04-15 22:38:12,961 [ERROR] app.api.cases: Investigation failed for 1f0aed1f-1cbd-4977-83b2-abb87573204f: unhashable type: 'dict'
+2026-04-15 22:41:51,544 [INFO] app.main: SmartKYC shutting down...
+2026-04-15 22:41:52,389 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-15.log
+2026-04-15 22:41:52,398 [INFO] app.main: SmartKYC starting up...
+2026-04-15 22:41:56,060 [INFO] app.main: SmartKYC shutting down...
+2026-04-15 22:41:56,691 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-15.log
+2026-04-15 22:41:56,700 [INFO] app.main: SmartKYC starting up...
+2026-04-15 22:42:03,490 [INFO] app.main: SmartKYC shutting down...
+2026-04-15 22:42:04,182 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-15.log
+2026-04-15 22:42:04,191 [INFO] app.main: SmartKYC starting up...
+2026-04-15 22:42:26,662 [INFO] app.main: SmartKYC shutting down...
+2026-04-15 22:42:27,320 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-15.log
+2026-04-15 22:42:27,330 [INFO] app.main: SmartKYC starting up...
+2026-04-15 22:44:24,730 [INFO] app.main: SmartKYC shutting down...
+2026-04-15 22:44:27,632 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-15.log
+2026-04-15 22:44:27,642 [INFO] app.main: SmartKYC starting up...
+2026-04-15 22:44:52,292 [DEBUG] app.services.document_service: pdf2image: Unable to get page count. Is poppler installed and in PATH?
+2026-04-15 22:44:52,292 [DEBUG] app.services.document_service: [Vision] Calling Gemini Vision for RU_PASSPORT (application/pdf, 3901 bytes)
+2026-04-15 22:44:52,761 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-15 22:44:52,961 [DEBUG] app.main: Chat session 2026-04-15-qtjpmf saved (3 messages)
+2026-04-15 22:44:58,870 [INFO] app.services.document_service: Gemini Vision extracted 9 fields from RU_PASSPORT
+2026-04-15 22:44:58,871 [INFO] app.services.document_service: [Vision] RU_PASSPORT: 12 fields, conf=0.99
+2026-04-15 22:44:58,915 [INFO] root: AFC is enabled with max remote calls: 10.
+2026-04-15 22:44:59,729 [DEBUG] app.main: Chat session 2026-04-15-qtjpmf saved (6 messages)
+2026-04-15 22:45:04,612 [WARNING] app.services.investigation_service: LLM agent decision failed (Unterminated string starting at: line 4 column 29 (char 102)). Using rule-based fallback.
+2026-04-15 22:45:04,629 [INFO] app.services.verification_service: [VERIFY] OFAC SDN List (MOCK) → partial_match for 'PETROV VIKTOR ALEKSEYEVICH' [0ms]
+2026-04-15 22:45:04,632 [INFO] app.services.verification_service: [VERIFY] UN Consolidated Sanctions (MOCK) → partial_match for 'PETROV VIKTOR ALEKSEYEVICH' [0ms]
+2026-04-15 22:45:04,638 [INFO] app.services.verification_service: [VERIFY] EU Consolidated Sanctions (MOCK) → partial_match for 'PETROV VIKTOR ALEKSEYEVICH' [0ms]
+2026-04-15 22:45:04,645 [INFO] app.services.investigation_service: [caed098f] Sanctions Screening Agent (mandatory) score=84 flags=['sanctions_partial_match', 'high_risk_jurisdiction']
+2026-04-15 22:45:04,649 [INFO] app.services.verification_service: [VERIFY] Global News Intelligence (MOCK) → flagged for 'PETROV VIKTOR ALEKSEYEVICH' [0ms]
+2026-04-15 22:45:04,651 [INFO] app.services.verification_service: [VERIFY] Dow Jones Risk & Compliance (MOCK) → flagged for 'PETROV VIKTOR ALEKSEYEVICH' [0ms]
+2026-04-15 22:45:04,657 [INFO] app.services.investigation_service: [caed098f] Adverse Media Agent (mandatory) score=80 flags=['adverse_media']
+2026-04-15 22:45:04,659 [INFO] agent.identity_agent: IdentityAgent running for case caed098f-d5e0-4a51-8a6e-f7ed164c81bb
+2026-04-15 22:45:04,661 [INFO] app.services.verification_service: [VERIFY] Passport Validation (MOCK) → clear for 'PETROV VIKTOR ALEKSEYEVICH' [0ms]
+2026-04-15 22:45:04,666 [INFO] app.services.investigation_service: [caed098f] Identity Verification Agent (mandatory) score=15 flags=[]
+2026-04-15 22:45:04,672 [INFO] app.services.investigation_service: [caed098f] Transaction Analysis Agent (llm_decided) score=10 flags=[]
+2026-04-15 22:45:04,672 [ERROR] app.api.cases: Investigation failed for caed098f-d5e0-4a51-8a6e-f7ed164c81bb: unhashable type: 'dict'
+2026-04-15 22:52:29,612 [INFO] app.main: SmartKYC shutting down...
+2026-04-15 22:52:30,415 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-15.log
+2026-04-15 22:52:30,425 [INFO] app.main: SmartKYC starting up...
+2026-04-15 22:54:53,464 [INFO] app.main: SmartKYC shutting down...
+2026-04-15 22:54:54,246 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-15.log
+2026-04-15 22:54:54,255 [INFO] app.main: SmartKYC starting up...
+2026-04-15 22:54:57,414 [INFO] app.main: SmartKYC shutting down...
+2026-04-15 22:54:58,074 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-15.log
+2026-04-15 22:54:58,083 [INFO] app.main: SmartKYC starting up...
+2026-04-15 22:55:05,124 [INFO] app.main: SmartKYC shutting down...
+2026-04-15 22:55:05,805 [INFO] app.core.logging: SmartKYC logging ready — /Users/viky/Desktop/Projects/usecasemarch/smartkyc/backend/logs/smartkyc-2026-04-15.log
+2026-04-15 22:55:05,815 [INFO] app.main: SmartKYC starting up...

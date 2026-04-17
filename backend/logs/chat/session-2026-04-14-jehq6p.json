@@ -1,0 +1,117 @@
+{
+  "session_id": "2026-04-14-jehq6p",
+  "started_at": "2026-04-14T21:28:03.742Z",
+  "messages": [
+    {
+      "id": "welcome",
+      "role": "bot",
+      "text": "Welcome to SmartKYC. Here's what I can do:\n\n• **Launch an investigation** — drop an ID document or type a subject's full name\n• **Answer case queries** — ask about risk levels, pending reviews, flags, counts\n\nExamples: \"How many cases are for review?\", \"List high risk cases\", \"Show pending cases\""
+    },
+    {
+      "role": "user",
+      "text": "How many cases are for review",
+      "id": "tvm03s21fq"
+    },
+    {
+      "role": "bot",
+      "text": "There are **39 cases under review** out of 56 total.\n\n• EMILY ANN CARTER (KYC-2026-8E62) — low risk\n• CARTER EMILY ANN (KYC-2026-94F6) — low risk\n• EMILY ANN CARTER (KYC-2026-1B38) — low risk\n• How many cases are there for reveiw (KYC-2026-08FC) — low risk\n• Processing… (KYC-2026-CCC9) — low risk\n…and 34 more",
+      "id": "zm4wg698xk"
+    },
+    {
+      "role": "user",
+      "file": {
+        "name": "USA-Passport.png",
+        "size": 4072576
+      },
+      "id": "w1n9mwpab1n"
+    },
+    {
+      "role": "bot",
+      "text": "Got it — detecting document type for **USA-Passport.png**, extracting fields…",
+      "id": "ig7zh0ab6si"
+    },
+    {
+      "role": "bot",
+      "text": "Extracted **🇺🇸 US Passport** fields:",
+      "extraction": {
+        "document_schema": "US_PASSPORT",
+        "document_type": "Passport",
+        "country": "United States",
+        "issuer": "U.S. Department of State",
+        "full_name": "",
+        "fields": {},
+        "confidences": {},
+        "overall_confidence": 0.5,
+        "extraction_method": "tesseract",
+        "raw_text": ""
+      },
+      "id": "1sit9ewbfov"
+    },
+    {
+      "role": "bot",
+      "text": "Launching investigation…",
+      "id": "slacvcgjduk"
+    },
+    {
+      "role": "bot",
+      "text": "Investigation launched for **this subject** (KYC-2026-5450). Agents are running — click \"Open case →\" to follow along.",
+      "caseCard": {
+        "caseId": "5a6acb63-00ef-4658-b8af-c0017c7222d2",
+        "caseNumber": "KYC-2026-5450",
+        "subjectName": "Unknown Subject",
+        "status": "pending"
+      },
+      "id": "v6jospnibt"
+    },
+    {
+      "role": "user",
+      "file": {
+        "name": "Indian-Pancard.jpeg",
+        "size": 999517
+      },
+      "id": "enw4nir90g4"
+    },
+    {
+      "role": "bot",
+      "text": "Got it — detecting document type for **Indian-Pancard.jpeg**, extracting fields…",
+      "id": "11puc7e4di3"
+    },
+    {
+      "role": "bot",
+      "text": "Extracted **🇮🇳 PAN Card** fields:",
+      "extraction": {
+        "document_schema": "IN_PAN",
+        "document_type": "PAN Card",
+        "country": "India",
+        "issuer": "Income Tax Department",
+        "full_name": "",
+        "fields": {},
+        "confidences": {},
+        "overall_confidence": 0.5,
+        "extraction_method": "tesseract",
+        "raw_text": ""
+      },
+      "id": "n897i4ensh"
+    },
+    {
+      "role": "bot",
+      "text": "Launching investigation…",
+      "id": "mjfeh6p1udn"
+    },
+    {
+      "role": "bot",
+      "text": "Investigation launched for **this subject** (KYC-2026-2066). Agents are running — click \"Open case →\" to follow along.",
+      "caseCard": {
+        "caseId": "6b01b804-e9a7-4fde-b767-97c359fa4850",
+        "caseNumber": "KYC-2026-2066",
+        "subjectName": "Unknown Subject",
+        "status": "pending"
+      },
+      "id": "pfkceg8er8"
+    }
+  ],
+  "cases_created": [
+    "5a6acb63-00ef-4658-b8af-c0017c7222d2",
+    "6b01b804-e9a7-4fde-b767-97c359fa4850"
+  ]
+}

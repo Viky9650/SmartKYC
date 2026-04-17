@@ -1,0 +1,100 @@
+{
+  "session_id": "2026-04-14-zuzgr9",
+  "started_at": "2026-04-14T20:57:57.205Z",
+  "messages": [
+    {
+      "id": "welcome",
+      "role": "bot",
+      "text": "Welcome to SmartKYC. Here's what I can do:\n\n• **Launch an investigation** — drop an ID document or type a subject's full name\n• **Answer case queries** — ask about risk levels, pending reviews, flags, counts\n\nExamples: \"How many cases are for review?\", \"List high risk cases\", \"Show pending cases\""
+    },
+    {
+      "role": "user",
+      "text": "How many cases are for review?",
+      "id": "s65njpc7aes"
+    },
+    {
+      "role": "bot",
+      "text": "There are **36 under review cases** out of 50 total.\n\n• CARTER EMILY ANN (KYC-2026-94F6) — low risk, review\n• EMILY ANN CARTER (KYC-2026-1B38) — low risk, review\n• How many cases are there for reveiw (KYC-2026-08FC) — low risk, review\n• Processing… (KYC-2026-CCC9) — low risk, review\n• TWITTERPREET SINGH (KYC-2026-0AEB) — low risk, review\n…and 31 more",
+      "id": "bifa6svhoqv"
+    },
+    {
+      "role": "user",
+      "text": "List the highest risk cases",
+      "id": "zurhd5v2gq8"
+    },
+    {
+      "role": "bot",
+      "text": "**High / critical risk cases** (3 total):\n\n🟠 **Demo27** — KYC-2026-2705 · score 75 · review\n🟠 **Demo25** — KYC-2026-E90D · score 75 · rejected\n🟠 **Test** — KYC-2026-210C · score 75 · rejected",
+      "id": "opq72ywmos8"
+    },
+    {
+      "role": "user",
+      "file": {
+        "name": "USA-Passport.png",
+        "size": 4072576
+      },
+      "id": "gqm25zmwjgo"
+    },
+    {
+      "role": "bot",
+      "text": "Got it — detecting document type for **USA-Passport.png**, extracting fields…",
+      "id": "3u4blpa9bec"
+    },
+    {
+      "role": "bot",
+      "text": "Extracted **🇺🇸 US Passport** fields:",
+      "extraction": {
+        "document_schema": "US_PASSPORT",
+        "document_type": "Passport",
+        "country": "United States",
+        "issuer": "U.S. Department of State",
+        "full_name": "EMILY ANN CARTER",
+        "fields": {
+          "surname": "CARTER",
+          "given_names": "EMILY ANN",
+          "date_of_birth": "10 FEB 1985",
+          "date_of_issue": "14 JUL 2033",
+          "passport_number": "N8710A567RY",
+          "nationality": "UNITED STATES OF AMERICA",
+          "sex": "F",
+          "place_of_birth": "CALIFORNIA, U.S.A."
+        },
+        "confidences": {
+          "surname": 0.96,
+          "given_names": 0.96,
+          "date_of_birth": 0.96,
+          "date_of_issue": 0.96,
+          "passport_number": 0.96,
+          "nationality": 0.96,
+          "sex": 0.96,
+          "place_of_birth": 0.96
+        },
+        "overall_confidence": 0.96,
+        "extraction_method": "gemini_vision",
+        "raw_text": "",
+        "document_quality": "good",
+        "notes": ""
+      },
+      "id": "hz1dhtstwnr"
+    },
+    {
+      "role": "bot",
+      "text": "Launching investigation…",
+      "id": "70m0s80o6vm"
+    },
+    {
+      "role": "bot",
+      "text": "Investigation launched for **EMILY ANN CARTER** (KYC-2026-8E62). Agents are running — click \"Open case →\" to follow along.",
+      "caseCard": {
+        "caseId": "2f52c0a2-ebbe-4386-bbac-4f568959eb35",
+        "caseNumber": "KYC-2026-8E62",
+        "subjectName": "EMILY ANN CARTER",
+        "status": "pending"
+      },
+      "id": "00rlqseptcrj"
+    }
+  ],
+  "cases_created": [
+    "2f52c0a2-ebbe-4386-bbac-4f568959eb35"
+  ]
+}

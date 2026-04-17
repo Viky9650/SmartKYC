@@ -6,6 +6,7 @@ import CasesPage from './pages/CasesPage'
 import CaseDetailPage from './pages/CaseDetailPage'
 import ReviewQueuePage from './pages/ReviewQueuePage'
 import AuthoritiesPage from './pages/AuthoritiesPage'
+import ChatIntakePage from './pages/ChatIntakePage'
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
       <Route path="/" element={<Layout />}>
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<DashboardPage />} />
+        <Route path="cases/chat" element={<ChatIntakePage />} />
         <Route path="cases/new" element={<NewCasePage />} />
         <Route path="cases" element={<CasesPage />} />
         <Route path="cases/:id" element={<CaseDetailPage />} />

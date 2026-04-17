@@ -21,12 +21,13 @@ export function riskLabel(score: number): string {
 }
 
 // ─── Risk Score Ring ──────────────────────────────────────────────────────────
-export function RiskRing({ score }: { score: number }) {
+export function RiskRing({ score, size = 140 }: { score: number; size?: number }) {
   const col = riskColor(score)
   const rotation = -90 + (score / 100) * 180
+  const scale = size / 140
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-      <svg width="140" height="76" viewBox="0 0 140 76">
+      <svg width={size} height={Math.round(76 * scale)} viewBox="0 0 140 76">
         <defs>
           <linearGradient id="rg" x1="0" y1="0" x2="1" y2="0">
             <stop offset="0%"   stopColor="#22c55e" />
@@ -43,10 +44,10 @@ export function RiskRing({ score }: { score: number }) {
         />
         <circle cx="70" cy="70" r="4" fill={col}/>
       </svg>
-      <div style={{ fontSize: 36, fontWeight: 700, fontFamily: 'JetBrains Mono,monospace', color: col, lineHeight: 1, marginTop: -8 }}>
+      <div style={{ fontSize: Math.round(36 * scale), fontWeight: 700, fontFamily: 'JetBrains Mono,monospace', color: col, lineHeight: 1, marginTop: -8 }}>
         {Math.round(score)}
       </div>
-      <div style={{ fontSize: 11, color: '#5a6a84', fontFamily: 'JetBrains Mono,monospace' }}>
+      <div style={{ fontSize: Math.max(9, Math.round(11 * scale)), color: '#5a6a84', fontFamily: 'JetBrains Mono,monospace' }}>
         {riskLabel(score)}
       </div>
     </div>

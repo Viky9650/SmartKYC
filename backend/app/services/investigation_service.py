@@ -46,7 +46,7 @@ from app.agents.agents import (
     AdverseMediaAgent, TransactionAnalysisAgent, RiskAggregationAgent,
 )
 from app.core.llm_router import llm
-from app.services.verification_service import get_authorities_for_subject, VERIFICATION_AUTHORITIES
+from app.services.verification_service import get_authorities_for_subject, VERIFICATION_AUTHORITIES, register_verification_callback, set_current_case_id
 
 logger = logging.getLogger(__name__)
 
@@ -341,7 +341,15 @@ async def _check_escalation(
     if not remaining:
         return []
 
-    top_flags = list({f for r in completed for f in r.get("flags", [])})
+    top_flags = list({f for r in completed for f in r.get("flags", []) if isinstance(f, str)})
+
+    # Build the agent summary outside the f-string to avoid the
+    # {{...}} f-string trap (double braces inside expressions create sets,
+    # not dict literals, causing "unhashable type: dict").
+    agent_summary = json.dumps(
+        [{"agent": r["agent"], "score": r["risk_score"], "flags": r["flags"]} for r in completed],
+        indent=2,
+    )
 
     prompt = f"""Senior AML analyst reviewing escalation decision.
 
@@ -350,7 +358,7 @@ First-wave max risk score: {max_score:.0f}/100
 Flags raised: {top_flags}
 
 Agent results summary:
-{json.dumps([{{"agent": r["agent"], "score": r["risk_score"], "flags": r["flags"]}} for r in completed], indent=2)}
+{agent_summary}
 
 Agents NOT yet run: {remaining}
 
@@ -365,7 +373,14 @@ If none needed: {{"escalate": [], "reasoning": "explanation"}}"""
             clean = re.sub(r"```[a-z]*\n?", "", clean).strip("`").strip()
         data = json.loads(clean)
 
-        escalate = [k for k in data.get("escalate", []) if k in AGENT_CATALOGUE and k not in already_run]
+        # Guard: LLM sometimes returns list of dicts instead of list of strings.
+        # Extract the string key from dicts, skip anything else non-string.
+        raw_escalate = data.get("escalate", [])
+        str_escalate = [
+            (k if isinstance(k, str) else k.get("agent") or k.get("key") or "")
+            for k in raw_escalate
+        ]
+        escalate = [k for k in str_escalate if k and k in AGENT_CATALOGUE and k not in already_run]
         if escalate:
             await _log_event(db, case.id, "escalation_triggered", {
                 "escalated": escalate,
@@ -431,6 +446,15 @@ async def run_investigation(case_id: str, db: AsyncSession) -> Dict[str, Any]:
     case.status = "investigating"
     await db.commit()
 
+    # Register verification event callback so every API call is logged
+    async def _on_verification_event(c_id: str, event_data: dict):
+        phase = event_data.pop("phase", "")
+        if phase == "completed":
+            await _log_event(db, c_id, "verification_api_called", event_data)
+
+    register_verification_callback(_on_verification_event)
+    set_current_case_id(case_id)
+
     # Phase 1 ─ Plan
     plan = await generate_investigation_plan(case, db)
     case.investigation_plan = plan
@@ -449,18 +473,8 @@ async def run_investigation(case_id: str, db: AsyncSession) -> Dict[str, Any]:
     doc_res = await db.execute(select(Document).where(Document.case_id == case_id))
     docs = doc_res.scalars().all()
     subject["document_types"] = [d.document_type for d in docs if d.document_type]
-    # Preserve the operator-entered DOB BEFORE extracted fields can overwrite it.
-    # IdentityAgent reads _case_date_of_birth (operator) vs date_of_birth (document).
-    subject["_case_date_of_birth"] = case.date_of_birth or ""
     if docs and docs[0].extracted_data:
-        ed = docs[0].extracted_data
-        # Merge extracted fields — this will overwrite date_of_birth with the
-        # value read from the document, which is what we want for the mismatch check.
-        subject.update(ed.get("fields", {}))
-        # Also carry the top-level full_name so IdentityAgent can compare it
-        # against the case subject_name to detect mismatches.
-        if ed.get("full_name"):
-            subject["full_name"] = ed["full_name"]
+        subject.update(docs[0].extracted_data.get("fields", {}))
 
     # Phase 2 ─ Run planned agents
     agent_results: List[Dict] = []
@@ -487,7 +501,12 @@ async def run_investigation(case_id: str, db: AsyncSession) -> Dict[str, Any]:
             run_keys.add(agent_key)
 
             await _save_agent_result(db, case_id, result_obj, source)
+
+            # ── Live score update: recompute partial weighted score so the
+            #    frontend gauge moves as each agent completes ─────────────────
+            _update_live_score(case, agent_results)
             await db.commit()
+
             await _log_event(db, case_id, "agent_completed", {
                 "agent": agent_key, "source": source,
                 "score": result_obj.risk_score, "flags": result_obj.flags,
@@ -500,12 +519,8 @@ async def run_investigation(case_id: str, db: AsyncSession) -> Dict[str, Any]:
             logger.error(f"Agent {agent_key} failed: {e}", exc_info=True)
             await _log_event(db, case_id, "agent_failed", {"agent": agent_key, "error": str(e)})
 
-    # Phase 3/4 ─ Escalation (wrapped — must never block pipeline completion)
-    try:
-        escalation_keys = await _check_escalation(case, agent_results, run_keys, db)
-    except Exception as e:
-        logger.warning(f"Escalation check raised unexpectedly: {e}")
-        escalation_keys = []
+    # Phase 3/4 ─ Escalation
+    escalation_keys = await _check_escalation(case, agent_results, run_keys, db)
     for agent_key in escalation_keys:
         meta = AGENT_CATALOGUE.get(agent_key)
         if not meta or agent_key in run_keys:
@@ -519,6 +534,7 @@ async def run_investigation(case_id: str, db: AsyncSession) -> Dict[str, Any]:
             agent_results.append(result_dict)
             run_keys.add(agent_key)
             await _save_agent_result(db, case_id, result_obj, "escalated")
+            _update_live_score(case, agent_results)
             await db.commit()
             await _log_event(db, case_id, "agent_completed", {
                 "agent": agent_key, "source": "escalated",
@@ -529,21 +545,7 @@ async def run_investigation(case_id: str, db: AsyncSession) -> Dict[str, Any]:
 
     # Phase 5 ─ Risk aggregation
     subject["_agent_results"] = agent_results
-    try:
-        final_result = await RiskAggregationAgent(case_id, subject).run()
-    except Exception as e:
-        logger.error(f"RiskAggregationAgent failed: {e}", exc_info=True)
-        # Build a minimal result from whatever scores we have so the case still closes
-        all_scores = [r.get("risk_score", 0) for r in agent_results]
-        fallback_score = round(max(all_scores), 1) if all_scores else 50.0
-        from app.agents.base_agent import AgentResult as _AR
-        final_result = _AR(
-            agent="risk_aggregation_agent",
-            risk_score=fallback_score,
-            flags=list({f for r in agent_results for f in r.get("flags", [])}),
-            summary=f"Aggregation error — using max agent score {fallback_score:.0f}.",
-            confidence=0.5,
-        )
+    final_result = await RiskAggregationAgent(case_id, subject).run()
 
     case.risk_score = final_result.risk_score
     case.risk_level = _score_to_level(final_result.risk_score)
@@ -571,6 +573,25 @@ async def run_investigation(case_id: str, db: AsyncSession) -> Dict[str, Any]:
 
 
 # ─── Internal helpers ─────────────────────────────────────────────────────────
+
+def _update_live_score(case, agent_results: list):
+    """Recompute a partial weighted risk score from completed agents so far
+    and write it to case.risk_score — lets the frontend gauge animate live."""
+    weights = {
+        "sanctions_agent": 0.30, "pep_agent": 0.25, "identity_agent": 0.15,
+        "registry_agent": 0.15, "adverse_media_agent": 0.10,
+        "transaction_analysis_agent": 0.05,
+    }
+    weighted, total_w = 0.0, 0.0
+    for r in agent_results:
+        w = weights.get(r["agent"], 0.10)
+        weighted += r["risk_score"] * w
+        total_w  += w
+    if total_w > 0:
+        partial = round(min(100, max(0, weighted / total_w)), 1)
+        case.risk_score = partial
+        case.risk_level = _score_to_level(partial)
+
 
 async def _save_agent_result(db, case_id, result_obj, source):
     evidence = {**result_obj.evidence, "_agent_source": source}

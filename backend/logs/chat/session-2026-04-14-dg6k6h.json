@@ -1,0 +1,22 @@
+{
+  "session_id": "2026-04-14-dg6k6h",
+  "started_at": "2026-04-14T20:47:37.005Z",
+  "messages": [
+    {
+      "id": "welcome",
+      "role": "bot",
+      "text": "Welcome to SmartKYC. Here's what I can do:\n\n• **Launch an investigation** — drop an ID document or type a subject's full name\n• **Answer case queries** — ask about risk levels, pending reviews, flags, counts\n\nExamples: \"How many cases are for review?\", \"List high risk cases\", \"Show pending cases\""
+    },
+    {
+      "role": "user",
+      "text": "How many cases are for review?",
+      "id": "umho64vt4a"
+    },
+    {
+      "role": "bot",
+      "text": "There are **0 pending review cases** out of 50 total.\n\n",
+      "id": "t0yd8s5rf0d"
+    }
+  ],
+  "cases_created": []
+}

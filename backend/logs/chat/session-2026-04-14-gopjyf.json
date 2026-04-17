@@ -1,0 +1,324 @@
+{
+  "session_id": "2026-04-14-gopjyf",
+  "started_at": "2026-04-14T11:44:44.955Z",
+  "messages": [
+    {
+      "id": "welcome",
+      "role": "assistant",
+      "time": "12:44",
+      "content": "Welcome. Drop an ID document to auto-launch an investigation instantly, or just type a name and I'll handle the rest.\n\nYou can also ask about any existing case — risk scores, flags, agent findings."
+    },
+    {
+      "id": "mnyk1gneub1",
+      "time": "12:45",
+      "role": "user",
+      "content": "Please extract this document and launch the investigation.",
+      "file": {
+        "name": "USA-Passport.png",
+        "type": "image/png"
+      },
+      "extraction": {
+        "document_id": "efa81010-7767-447e-991e-656ff0f6b707",
+        "document_type": "US_PASSPORT",
+        "extracted_data": {
+          "fields": {},
+          "confidences": {},
+          "document_schema": "US_PASSPORT"
+        },
+        "filename": "USA-Passport.png",
+        "file_size": 4072576
+      }
+    },
+    {
+      "id": "mnyk1i4x17d",
+      "time": "12:45",
+      "role": "assistant",
+      "content": "Got it — see fields, US_PASSPORT, launching investigation.",
+      "launched": {
+        "id": "1ee6a181-9868-4628-acbc-5798b541f362",
+        "case_number": "KYC-2026-4EAC",
+        "subject_name": "see fields",
+        "subject_type": "Individual",
+        "date_of_birth": null,
+        "nationality": "American",
+        "notes": "Document uploaded: US_PASSPORT",
+        "status": "pending",
+        "risk_score": 0,
+        "risk_level": "unknown",
+        "created_at": "2026-04-14T11:45:17.118027"
+      }
+    },
+    {
+      "id": "mnyk1sddybe",
+      "time": "12:45",
+      "role": "assistant",
+      "content": "Investigation launched for see fields (KYC-2026-4EAC). Agents are running — click \"Open case →\" to follow along."
+    },
+    {
+      "role": "user",
+      "file": {
+        "name": "USA-Passport.png",
+        "size": 4072576
+      },
+      "id": "xxkcsp1n2z"
+    },
+    {
+      "role": "bot",
+      "text": "Got it — detecting document type for **USA-Passport.png**, extracting fields…",
+      "id": "i4oli884lnh"
+    },
+    {
+      "role": "bot",
+      "text": "Extracted **🇺🇸 US Passport** fields:",
+      "extraction": {
+        "document_schema": "US_PASSPORT",
+        "document_type": "Passport",
+        "country": "United States",
+        "issuer": "U.S. Department of State",
+        "full_name": "",
+        "fields": {},
+        "confidences": {},
+        "overall_confidence": 0.5,
+        "extraction_method": "tesseract",
+        "raw_text": ""
+      },
+      "id": "plmzst0bjcd"
+    },
+    {
+      "role": "bot",
+      "text": "Launching investigation…",
+      "id": "l31n1pelqsk"
+    },
+    {
+      "role": "bot",
+      "text": "Investigation launched for **this subject** (KYC-2026-C58D). Agents are running — click \"Open case →\" to follow along.",
+      "caseCard": {
+        "caseId": "45d8ac0d-60b0-46e6-bf8f-b8a963a273ea",
+        "caseNumber": "KYC-2026-C58D",
+        "subjectName": "Unknown Subject",
+        "status": "pending"
+      },
+      "id": "wyl0ymsjzkk"
+    },
+    {
+      "role": "user",
+      "file": {
+        "name": "Indian-Pancard.jpeg",
+        "size": 999517
+      },
+      "id": "dd1rm4bbzar"
+    },
+    {
+      "role": "bot",
+      "text": "Got it — detecting document type for **Indian-Pancard.jpeg**, extracting fields…",
+      "id": "fdsv3tlulv6"
+    },
+    {
+      "role": "bot",
+      "text": "Extracted **🇮🇳 PAN Card** fields:",
+      "extraction": {
+        "document_schema": "IN_PAN",
+        "document_type": "PAN Card",
+        "country": "India",
+        "issuer": "Income Tax Department",
+        "full_name": "TWITTERPREET SINGH",
+        "fields": {
+          "name": "TWITTERPREET SINGH",
+          "father_name": "BALWINDER SINGH",
+          "date_of_birth": "14/05/1995",
+          "pan_number": "BWZPS1234R"
+        },
+        "confidences": {
+          "name": 0.99,
+          "father_name": 0.99,
+          "date_of_birth": 0.99,
+          "pan_number": 0.99
+        },
+        "overall_confidence": 0.99,
+        "extraction_method": "gemini_vision",
+        "raw_text": "आयकर विभाग\nभारत सरकार\nINCOME TAX DEPARTMENT\nGOVT. OF INDIA\nसत्यमेव जयते\nTWITTERPREET SINGH\nBALWINDER SINGH\n14/05/1995\nPermanent Account Number\nBWZPS1234R\nTwitterpreet Singh\nSignature\nआयकर विभाग\nINCOME TAX DEPARTMENT\n23062014",
+        "document_quality": "good",
+        "notes": "The document is a PAN Card from India. All requested fields are clearly visible and extracted. The handwritten signature matches the name."
+      },
+      "id": "ixqj86c592p"
+    },
+    {
+      "role": "bot",
+      "text": "Launching investigation…",
+      "id": "sja73pznagq"
+    },
+    {
+      "role": "bot",
+      "text": "Investigation launched for **TWITTERPREET SINGH** (KYC-2026-0AEB). Agents are running — click \"Open case →\" to follow along.",
+      "caseCard": {
+        "caseId": "d247a664-c34e-4107-a0f0-43c95652bf5d",
+        "caseNumber": "KYC-2026-0AEB",
+        "subjectName": "TWITTERPREET SINGH",
+        "status": "pending"
+      },
+      "id": "fsjgl92huh7"
+    },
+    {
+      "role": "user",
+      "file": {
+        "name": "USA-Passport.png",
+        "size": 4072576
+      },
+      "id": "9e3axhpg0xb"
+    },
+    {
+      "role": "bot",
+      "text": "Got it — detecting document type for **USA-Passport.png**, extracting fields…",
+      "id": "ssxhr0q261k"
+    },
+    {
+      "role": "bot",
+      "text": "Extracted **🇺🇸 US Passport** fields:",
+      "extraction": {
+        "document_schema": "US_PASSPORT",
+        "document_type": "Passport",
+        "country": "United States",
+        "issuer": "U.S. Department of State",
+        "full_name": "",
+        "fields": {},
+        "confidences": {},
+        "overall_confidence": 0.5,
+        "extraction_method": "tesseract",
+        "raw_text": ""
+      },
+      "id": "h8ow7a0g82i"
+    },
+    {
+      "role": "bot",
+      "text": "Launching investigation…",
+      "id": "4fnkghmkf64"
+    },
+    {
+      "role": "bot",
+      "text": "Investigation launched for **this subject** (KYC-2026-CCC9). Agents are running — click \"Open case →\" to follow along.",
+      "caseCard": {
+        "caseId": "e1c9fd8d-95c9-4119-a14b-a02222004fab",
+        "caseNumber": "KYC-2026-CCC9",
+        "subjectName": "Unknown Subject",
+        "status": "pending"
+      },
+      "id": "vi9yjeqyim"
+    },
+    {
+      "role": "user",
+      "text": "How many cases are there for reveiw",
+      "id": "e0eo2ig2j1h"
+    },
+    {
+      "role": "bot",
+      "text": "Creating investigation for **How many cases are there for reveiw**…",
+      "id": "a6338si2mj"
+    },
+    {
+      "role": "bot",
+      "text": "Investigation launched for **How many cases are there for reveiw** (KYC-2026-08FC). Agents are running.",
+      "caseCard": {
+        "caseId": "62754505-3732-48aa-afa7-cf8b266fb21e",
+        "caseNumber": "KYC-2026-08FC",
+        "subjectName": "How many cases are there for reveiw",
+        "status": "pending"
+      },
+      "id": "0a48z26yqs79"
+    },
+    {
+      "role": "user",
+      "file": {
+        "name": "USA-Passport.png",
+        "size": 4072576
+      },
+      "id": "ioru9epsg69"
+    },
+    {
+      "role": "bot",
+      "text": "Got it — detecting document type for **USA-Passport.png**, extracting fields…",
+      "id": "ct03ko3w3o6"
+    },
+    {
+      "role": "bot",
+      "text": "Extracted **🇺🇸 US Passport** fields:",
+      "extraction": {
+        "document_schema": "US_PASSPORT",
+        "document_type": "Passport",
+        "country": "United States",
+        "issuer": "U.S. Department of State",
+        "full_name": "EMILY ANN CARTER",
+        "fields": {
+          "surname": "CARTER",
+          "given_names": "EMILY ANN",
+          "nationality": "UNITED STATES OF AMERICA",
+          "date_of_birth": "10 FEB 1985",
+          "sex": "F",
+          "date_of_issue": "14 JUL 2033",
+          "date_of_expiry": "14 JUL 2033",
+          "passport_number": "N8710A567RY",
+          "place_of_birth": "CALIFORNIA, U.S.A."
+        },
+        "confidences": {
+          "surname": 0.96,
+          "given_names": 0.96,
+          "nationality": 0.96,
+          "date_of_birth": 0.96,
+          "sex": 0.96,
+          "date_of_issue": 0.96,
+          "date_of_expiry": 0.96,
+          "passport_number": 0.96,
+          "place_of_birth": 0.96
+        },
+        "overall_confidence": 0.96,
+        "extraction_method": "gemini_vision",
+        "raw_text": "",
+        "document_quality": "good",
+        "notes": ""
+      },
+      "id": "ehs4fk683vh"
+    },
+    {
+      "role": "bot",
+      "text": "Launching investigation…",
+      "id": "lnr50gr9r3c"
+    },
+    {
+      "role": "bot",
+      "text": "Investigation launched for **EMILY ANN CARTER** (KYC-2026-1B38). Agents are running — click \"Open case →\" to follow along.",
+      "caseCard": {
+        "caseId": "eb541e06-1e0a-4adb-aa80-261b6f8a1a1a",
+        "caseNumber": "KYC-2026-1B38",
+        "subjectName": "EMILY ANN CARTER",
+        "status": "pending"
+      },
+      "id": "9gqzktv7tvs"
+    },
+    {
+      "role": "user",
+      "text": "How many cases are their for review?",
+      "id": "np24mzrgb59"
+    },
+    {
+      "role": "bot",
+      "text": "To launch an investigation, drop an ID document here or type a subject's full name (e.g. \"John Smith\"). For queries about existing cases, use the All Cases or Review Queue pages.",
+      "id": "hvptwcaflz"
+    },
+    {
+      "role": "user",
+      "text": "List the high priority cases",
+      "id": "cem1vyicny"
+    },
+    {
+      "role": "bot",
+      "text": "To launch an investigation, drop an ID document here or type a subject's full name (e.g. \"John Smith\"). For queries about existing cases, use the All Cases or Review Queue pages.",
+      "id": "f8a75e0x5a"
+    }
+  ],
+  "cases_created": [
+    "45d8ac0d-60b0-46e6-bf8f-b8a963a273ea",
+    "d247a664-c34e-4107-a0f0-43c95652bf5d",
+    "e1c9fd8d-95c9-4119-a14b-a02222004fab",
+    "62754505-3732-48aa-afa7-cf8b266fb21e",
+    "eb541e06-1e0a-4adb-aa80-261b6f8a1a1a"
+  ]
+}

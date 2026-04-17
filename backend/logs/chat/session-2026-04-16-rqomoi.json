@@ -1,0 +1,72 @@
+{
+  "session_id": "2026-04-16-rqomoi",
+  "started_at": "2026-04-16T11:40:59.684Z",
+  "messages": [
+    {
+      "id": "welcome",
+      "role": "bot",
+      "text": "Welcome to SmartKYC. Here's what I can do:\n\n• **Launch an investigation** — drop an ID document or type a subject's full name\n• **Answer case queries** — ask about risk levels, pending reviews, flags, counts\n\nExamples: \"How many cases are for review?\", \"List high risk cases\", \"Show pending cases\""
+    },
+    {
+      "role": "user",
+      "file": {
+        "name": "Indian-Pancard.jpeg",
+        "size": 999517
+      },
+      "id": "2stnd9qw6bc"
+    },
+    {
+      "role": "bot",
+      "text": "Got it — detecting document type for **Indian-Pancard.jpeg**, extracting fields…",
+      "id": "oajznz10pes"
+    },
+    {
+      "role": "bot",
+      "text": "Extracted **🇮🇳 PAN Card** fields:",
+      "extraction": {
+        "document_schema": "IN_PAN",
+        "document_type": "PAN Card",
+        "country": "India",
+        "issuer": "Income Tax Department",
+        "full_name": "TWITTERPREET SINGH",
+        "fields": {
+          "name": "TWITTERPREET SINGH",
+          "father_name": "BALWINDER SINGH",
+          "date_of_birth": "14/05/1995",
+          "pan_number": "BWZPS1234R"
+        },
+        "confidences": {
+          "name": 0.99,
+          "father_name": 0.99,
+          "date_of_birth": 0.99,
+          "pan_number": 0.99
+        },
+        "overall_confidence": 0.99,
+        "extraction_method": "gemini_vision",
+        "raw_text": "",
+        "document_quality": "good",
+        "notes": ""
+      },
+      "id": "dc2ky3tjfir"
+    },
+    {
+      "role": "bot",
+      "text": "Launching investigation…",
+      "id": "qhif5ae19p"
+    },
+    {
+      "role": "bot",
+      "text": "Investigation launched for **TWITTERPREET SINGH** (KYC-2026-B6BA). Agents are running — click \"Open case →\" to follow along.",
+      "caseCard": {
+        "caseId": "88695782-eda7-47a7-86bc-1d90f386de8e",
+        "caseNumber": "KYC-2026-B6BA",
+        "subjectName": "TWITTERPREET SINGH",
+        "status": "pending"
+      },
+      "id": "f61bf2x3euk"
+    }
+  ],
+  "cases_created": [
+    "88695782-eda7-47a7-86bc-1d90f386de8e"
+  ]
+}

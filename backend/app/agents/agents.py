@@ -1,69 +1,7 @@
 """Investigation agents for SmartKYC."""
-import re
 from typing import Dict, Any
 from app.agents.base_agent import BaseAgent, AgentResult
 from app.services.verification_service import run_verification
-
-
-def _normalise_name(name: str) -> str:
-    """Lowercase, strip punctuation, collapse whitespace."""
-    name = name.lower()
-    name = re.sub(r"[^a-z0-9\s]", "", name)
-    return " ".join(name.split())
-
-
-def _name_tokens(name: str):
-    return set(_normalise_name(name).split())
-
-
-def _name_match_score(a: str, b: str) -> float:
-    """
-    Returns 0.0 (completely different) → 1.0 (identical).
-    Uses token overlap so "John Smith" matches "Smith John".
-    """
-    if not a or not b:
-        return 0.0
-    if _normalise_name(a) == _normalise_name(b):
-        return 1.0
-    ta, tb = _name_tokens(a), _name_tokens(b)
-    if not ta or not tb:
-        return 0.0
-    overlap = len(ta & tb)
-    return overlap / max(len(ta), len(tb))
-
-
-def _normalise_dob(dob: str):
-    """
-    Parse a date string into a (day, month, year) int tuple.
-    Handles:  DD/MM/YYYY  DD-MM-YYYY  YYYY-MM-DD  YYYY/MM/DD  DD.MM.YYYY
-    Returns None if unparseable.
-    """
-    if not dob:
-        return None
-    dob = dob.strip()
-    dob = re.sub(r"[\-\./]", "/", dob)
-    parts = dob.split("/")
-    if len(parts) != 3:
-        return None
-    try:
-        p = [int(x) for x in parts]
-    except ValueError:
-        return None
-    # YYYY/MM/DD
-    if p[0] > 31:
-        return (p[2], p[1], p[0])
-    # DD/MM/YYYY
-    if p[2] > 31:
-        return (p[0], p[1], p[2])
-    return None
-
-
-def _dob_match(a: str, b: str) -> bool:
-    """Return True if both DOB strings resolve to the same calendar date."""
-    na, nb = _normalise_dob(a), _normalise_dob(b)
-    if na is None or nb is None:
-        return True   # Can't compare -> do not flag
-    return na == nb
 
 
 class IdentityAgent(BaseAgent):
@@ -72,224 +10,93 @@ class IdentityAgent(BaseAgent):
 
     async def run(self) -> AgentResult:
         self.logger.info(f"IdentityAgent running for case {self.case_id}")
-        case_name   = self.subject.get("subject_name", "")
+        name        = self.subject.get("subject_name", "")
         nationality = self.subject.get("nationality", "")
-        doc_types   = self.subject.get("document_types", [])
+        doc_types   = [d.lower() for d in self.subject.get("document_types", [])]
 
-        # ── Collect extracted document names (all sources) ────────────────────
-        # The investigation_service merges extracted_data fields into subject,
-        # so "full_name", "name", "surname"+"given_names" may be present.
-        extracted_name = (
-            self.subject.get("full_name")
-            or self.subject.get("name")
-            or (
-                (self.subject.get("given_names", "") + " " + self.subject.get("surname", "")).strip()
-                or None
-            )
-        )
+        # Check extracted fields directly — works regardless of detected doc type.
+        # Gemini Vision extracts pan_number / aadhaar_number even from generic uploads.
+        has_pan     = bool(self.subject.get("pan_number") or self.subject.get("id_number", "").strip())
+        has_aadhaar = bool(self.subject.get("aadhaar_number"))
+        is_indian   = "india" in nationality.lower() or "indian" in nationality.lower()
 
         results = {}
         authorities_used = []
-        flags = []
-        score = 0.0
-        mismatch_detail = {}
 
-        # ── Name mismatch check ───────────────────────────────────────────────
-        if extracted_name and case_name:
-            match_score = _name_match_score(case_name, extracted_name)
-            mismatch_detail = {
-                "case_name":       case_name,
-                "document_name":   extracted_name,
-                "match_score":     round(match_score, 3),
-            }
-            self.logger.info(
-                f"Name match: '{case_name}' vs '{extracted_name}' → {match_score:.2f}"
-            )
-            if match_score < 0.30:
-                # Strong mismatch — could be data entry error OR fraud
-                # Score is advisory (40) until officer confirms suspicious (→75 via endpoint)
-                flags.append("name_mismatch_critical")
-                score = max(score, 40.0)
-                mismatch_detail["severity"] = "NEEDS_REVIEW"
-                mismatch_detail["note"] = (
-                    f"Document name '{extracted_name}' does not match case name "
-                    f"'{case_name}' (similarity {match_score:.0%}). "
-                    "Could be a data entry error — officer must confirm or correct."
-                )
-            elif match_score < 0.70:
-                # Partial mismatch — nickname, maiden name, etc.
-                flags.append("name_mismatch")
-                score = max(score, 25.0)
-                mismatch_detail["severity"] = "WARNING"
-                mismatch_detail["note"] = (
-                    f"Partial name match: '{extracted_name}' vs '{case_name}' "
-                    f"(similarity {match_score:.0%}). Review required."
-                )
-
-        # ── DOB mismatch check ────────────────────────────────────────────────
-        case_dob      = self.subject.get("date_of_birth", "")   # from Case record
-        extracted_dob = self.subject.get("date_of_birth") or ""  # from extracted fields
-        # extracted_data fields are merged into subject AFTER case fields,
-        # so date_of_birth in subject IS the extracted value if a doc was uploaded.
-        # We compare case.date_of_birth (entered by the operator) vs doc extraction.
-        # They live in the same key so we need both raw sources — we get the
-        # operator-entered one from the Case model via a dedicated key set in
-        # investigation_service (see below).
-        operator_dob   = self.subject.get("_case_date_of_birth", "")
-        document_dob   = self.subject.get("date_of_birth", "")
-
-        dob_detail: dict = {}
-        if operator_dob and document_dob:
-            if not _dob_match(operator_dob, document_dob):
-                flags.append("dob_mismatch")
-                # Advisory score — officer must confirm before full floor applies
-                score = max(score, 35.0)
-                dob_detail = {
-                    "case_dob":      operator_dob,
-                    "document_dob":  document_dob,
-                    "severity":      "NEEDS_REVIEW",
-                    "note": (
-                        f"Date of birth on document ({document_dob}) does not match "
-                        f"case record ({operator_dob}). Could be a data entry error — "
-                        "officer must confirm or correct."
-                    ),
+        if is_indian:
+            # Run PAN check if: doc_type is in_pan OR a pan_number field was extracted
+            if has_pan or any("in_pan" in t or "pan" in t for t in doc_types):
+                extracted_data = {
+                    "pan_number": self.subject.get("pan_number") or self.subject.get("id_number", ""),
+                    "name":       name,
+                    "dob":        self.subject.get("date_of_birth", ""),
                 }
-                self.logger.info(
-                    f"DOB mismatch: case='{operator_dob}' doc='{document_dob}'"
-                )
-            else:
-                dob_detail = {
-                    "case_dob":     operator_dob,
-                    "document_dob": document_dob,
-                    "match":        True,
-                }
-
-        # ── Authority checks ──────────────────────────────────────────────────
-        # Document type drives which authorities to call — NOT just nationality.
-        # A British-nationality subject can still submit an Indian PAN card.
-        subject_type = self.subject.get("subject_type", "")
-
-        # Build extracted_data dict to pass document fields to authorities
-        extracted_data = {
-            k: self.subject.get(k)
-            for k in [
-                "pan_number", "aadhaar_number", "date_of_birth",
-                "passport_number", "full_name", "name",
-                "surname", "given_names", "id_number",
-            ]
-            if self.subject.get(k)
-        }
-
-        doc_types_lower = [t.lower() for t in doc_types]
-
-        # ── Indian documents ──────────────────────────────────────────────────
-        has_pan     = "in_pan"    in doc_types_lower
-        has_aadhaar = "in_aadhaar" in doc_types_lower
-        is_indian   = "INDIA" in nationality.upper() or "INDIAN" in nationality.upper()
-
-        if has_pan:
-            # PAN card → India PAN Verification (Income Tax Dept)
-            # Pass the extracted PAN number so the authority can do a real lookup
-            r = await run_verification(
-                "INDIA_PAN_VERIFY", case_name, subject_type, nationality,
-                extracted_data=extracted_data,
-            )
-            results["INDIA_PAN_VERIFY"] = r
-            authorities_used.append("INDIA_PAN_VERIFY")
-
-        if has_aadhaar:
-            # Aadhaar card → UIDAI
-            r = await run_verification(
-                "UIDAI_AADHAAR", case_name, subject_type, nationality,
-                extracted_data=extracted_data,
-            )
-            results["UIDAI_AADHAAR"] = r
-            authorities_used.append("UIDAI_AADHAAR")
-
-        if is_indian and not has_pan and not has_aadhaar:
-            # Indian subject but no specific doc — run both as fallback
-            for auth in ["UIDAI_AADHAAR", "INDIA_PAN_VERIFY"]:
                 r = await run_verification(
-                    auth, case_name, subject_type, nationality,
+                    "INDIA_PAN_VERIFY", name,
+                    self.subject.get("subject_type", ""), nationality,
                     extracted_data=extracted_data,
                 )
-                results[auth] = r
-                authorities_used.append(auth)
+                results["INDIA_PAN_VERIFY"] = r
+                authorities_used.append("INDIA_PAN_VERIFY")
 
-        # ── Passport (any nationality) ────────────────────────────────────────
-        has_passport = any(
-            t in doc_types_lower
-            for t in ["in_passport","gb_passport","us_passport","eu_passport",
-                      "ru_passport","ae_passport","cn_passport","generic_passport"]
+            # Run Aadhaar check if: doc_type is in_aadhaar OR aadhaar_number extracted
+            if has_aadhaar or any("in_aadhaar" in t or "aadhaar" in t for t in doc_types):
+                extracted_data = {
+                    "aadhaar_number": self.subject.get("aadhaar_number", ""),
+                    "name":           name,
+                }
+                r = await run_verification(
+                    "UIDAI_AADHAAR", name,
+                    self.subject.get("subject_type", ""), nationality,
+                    extracted_data=extracted_data,
+                )
+                results["UIDAI_AADHAAR"] = r
+                authorities_used.append("UIDAI_AADHAAR")
+
+        # Always run passport check
+        r = await run_verification("PASSPORT_INDEX", name, self.subject.get("subject_type", ""), nationality)
+        results["PASSPORT_INDEX"] = r
+        authorities_used.append("PASSPORT_INDEX")
+
+        # Cross-check: if case subject_name differs significantly from extracted name, flag it
+        extracted_name = (
+            self.subject.get("full_name") or
+            self.subject.get("surname", "") + " " + self.subject.get("given_names", "")
+        ).strip()
+        name_mismatch = (
+            extracted_name and name and
+            extracted_name.lower() not in name.lower() and
+            name.lower() not in extracted_name.lower()
         )
-        if has_passport or not results:
-            # Always run passport check if a passport was uploaded,
-            # OR as a fallback when no other authority matched
-            r = await run_verification(
-                "PASSPORT_INDEX", case_name, subject_type, nationality,
-                extracted_data=extracted_data,
-            )
-            results["PASSPORT_INDEX"] = r
-            authorities_used.append("PASSPORT_INDEX")
 
-        # ── UK documents ──────────────────────────────────────────────────────
-        if "gb_driving_license" in doc_types_lower:
-            r = await run_verification(
-                "DVLA_UK", case_name, subject_type, nationality,
-                extracted_data=extracted_data,
-            )
-            results["DVLA_UK"] = r
-            authorities_used.append("DVLA_UK")
+        any_failed = any(v.get("result") not in ["clear", "found", "verified"] for v in results.values())
 
-        # ── UAE documents ─────────────────────────────────────────────────────
-        if "ae_emirates_id" in doc_types_lower:
-            r = await run_verification(
-                "PASSPORT_INDEX", case_name, subject_type, nationality,
-                extracted_data=extracted_data,
-            )
-            results["PASSPORT_INDEX"] = r
-            if "PASSPORT_INDEX" not in authorities_used:
-                authorities_used.append("PASSPORT_INDEX")
-
-        any_failed = any(v.get("result") not in ["clear", "found"] for v in results.values())
+        flags = []
+        if name_mismatch:
+            flags.append("name_mismatch_critical")
+            self.logger.warning(f"Name mismatch: document='{extracted_name}' vs case='{name}'")
         if any_failed:
             flags.append("identity_verification_failed")
-            score = max(score, 60.0)
 
-        if not flags:
-            score = 15.0
+        score = 15.0
+        if name_mismatch: score = max(score, 60.0)
+        if any_failed and not name_mismatch: score = max(score, 45.0)
 
-        # Build summary
-        issues = []
-        if "name_mismatch_critical" in flags:
-            issues.append(f"CRITICAL name mismatch: document='{extracted_name}' vs case='{case_name}'")
-        elif "name_mismatch" in flags:
-            issues.append(f"Partial name mismatch: document='{extracted_name}' vs case='{case_name}'")
-        if "dob_mismatch" in flags:
-            issues.append(
-                f"DOB mismatch: document='{document_dob}' vs case='{operator_dob}'"
-            )
+        summary_parts = []
+        if name_mismatch:
+            summary_parts.append(f"CRITICAL name mismatch: document='{extracted_name}' vs case='{name}'")
         if any_failed:
-            issues.append("Identity authority check failed")
-
-        if issues:
-            summary = "Identity issues detected — " + "; ".join(issues) + "."
-        else:
-            summary = "Document verified. Name and date of birth match case record."
-
-        evidence = {**results}
-        if mismatch_detail:
-            evidence["name_mismatch_check"] = mismatch_detail
-        if dob_detail:
-            evidence["dob_mismatch_check"] = dob_detail
+            summary_parts.append("Identity authority check failed.")
+        if not summary_parts:
+            summary_parts.append("Document verified. No immediate forgery indicators.")
 
         return AgentResult(
             agent=self.name,
             risk_score=score,
             flags=flags,
-            summary=summary,
+            summary=" ".join(summary_parts),
             confidence=0.92 if not flags else 0.70,
-            evidence=evidence,
+            evidence=results,
             authorities_used=authorities_used,
         )
 
@@ -529,52 +336,30 @@ class RiskAggregationAgent(BaseAgent):
             return AgentResult(agent=self.name, risk_score=50, flags=["insufficient_data"],
                                summary="Insufficient data for risk aggregation.", confidence=0.5)
 
-        # Weighted aggregation — identity raised to 0.25 to reflect KYC primacy
+        # Weighted aggregation
         weights = {
-            "sanctions_agent":            0.30,
-            "pep_agent":                  0.20,
-            "identity_agent":             0.25,   # was 0.15 — name mismatch must surface
-            "registry_agent":             0.12,
-            "adverse_media_agent":        0.08,
+            "sanctions_agent": 0.30,
+            "pep_agent": 0.25,
+            "identity_agent": 0.15,
+            "registry_agent": 0.15,
+            "adverse_media_agent": 0.10,
             "transaction_analysis_agent": 0.05,
         }
 
         weighted_score = 0.0
-        total_weight   = 0.0
-        all_flags: list = []
+        total_weight = 0.0
+        all_flags = []
 
         for r in agent_results:
             w = weights.get(r["agent"], 0.10)
             weighted_score += r["risk_score"] * w
-            total_weight   += w
-            all_flags.extend(r.get("flags", []))
+            total_weight += w
+            all_flags.extend([f for f in r.get("flags", []) if isinstance(f, str)])
 
         final_score = weighted_score / total_weight if total_weight > 0 else 50.0
-
-        # ── Hard floors based on critical flags ───────────────────────────────
-        unique_flags = list(set(all_flags))
-
-        # Mismatch flags are ADVISORY until officer confirms suspicious.
-        # They raise the score enough to route to human review, but not
-        # into the high/critical band on their own.
-        if "officer_confirmed_suspicious" in unique_flags:
-            # Officer has reviewed and confirmed fraud — hard floor
-            final_score = max(final_score, 75.0)
-        else:
-            if "name_mismatch_critical" in unique_flags:
-                # Advisory: high enough to require review, not high enough to auto-reject
-                final_score = max(final_score, 45.0)
-            elif "name_mismatch" in unique_flags:
-                final_score = max(final_score, 30.0)
-            if "dob_mismatch" in unique_flags:
-                final_score = max(final_score, 40.0)
-
-        if "sanctions_match" in unique_flags:
-            final_score = max(final_score, 80.0)
-        if "pep_confirmed" in unique_flags:
-            final_score = max(final_score, 65.0)
-
         final_score = round(min(100, max(0, final_score)), 1)
+
+        unique_flags = list(set(all_flags))
         level = "CRITICAL" if final_score >= 80 else "HIGH" if final_score >= 60 else "MEDIUM" if final_score >= 40 else "LOW"
 
         return AgentResult(
@@ -583,17 +368,6 @@ class RiskAggregationAgent(BaseAgent):
             flags=unique_flags,
             summary=f"Final risk score: {final_score:.0f} ({level}). {len(unique_flags)} risk indicators identified.",
             confidence=0.90,
-            evidence={
-                "final_score":  final_score,
-                "risk_level":   level,
-                "all_flags":    unique_flags,
-                "agent_count":  len(agent_results),
-                "floors_applied": {
-                    "name_mismatch_critical": "name_mismatch_critical" in unique_flags,
-                    "name_mismatch":          "name_mismatch"          in unique_flags,
-                    "sanctions_match":        "sanctions_match"        in unique_flags,
-                    "pep_confirmed":          "pep_confirmed"          in unique_flags,
-                },
-            },
+            evidence={"final_score": final_score, "risk_level": level, "all_flags": unique_flags, "agent_count": len(agent_results)},
             authorities_used=[],
         )

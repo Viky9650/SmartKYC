@@ -1,0 +1,86 @@
+{
+  "session_id": "2026-04-17-n6zkdq",
+  "started_at": "2026-04-17T06:14:08.196Z",
+  "messages": [
+    {
+      "id": "welcome",
+      "role": "bot",
+      "text": "Welcome to SmartKYC. Here's what I can do:\n\n• **Launch an investigation** — drop an ID document or type a subject's full name\n• **Answer case queries** — ask about risk levels, pending reviews, flags, counts\n\nExamples: \"How many cases are for review?\", \"List high risk cases\", \"Show pending cases\""
+    },
+    {
+      "role": "user",
+      "file": {
+        "name": "ru_passport_viktor_petrov.pdf",
+        "size": 3901
+      },
+      "id": "up84advurls"
+    },
+    {
+      "role": "bot",
+      "text": "Got it — detecting document type for **ru_passport_viktor_petrov.pdf**, extracting fields…",
+      "id": "b350oqf79o"
+    },
+    {
+      "role": "bot",
+      "text": "Extracted **🇷🇺 Russia Passport** fields:",
+      "extraction": {
+        "document_schema": "RU_PASSPORT",
+        "document_type": "Passport",
+        "country": "Russia",
+        "issuer": "Ministry of Internal Affairs",
+        "full_name": "PETROV VIKTOR ALEKSEYEVICH",
+        "fields": {
+          "surname": "PETROV",
+          "given_names": "VIKTOR ALEKSEYEVICH",
+          "nationality": "RUSSIAN",
+          "date_of_birth": "12 MAR 1978",
+          "sex": "M",
+          "date_of_issue": "15 JUN 2015",
+          "date_of_expiry": "14 JUN 2025",
+          "passport_number": "RU7823419056",
+          "place_of_birth": "MOSCOW, RUSSIA",
+          "document_number": "RU7823419",
+          "issuing_country": "RUS"
+        },
+        "confidences": {
+          "surname": 0.99,
+          "given_names": 0.99,
+          "nationality": 0.99,
+          "date_of_birth": 0.99,
+          "sex": 0.99,
+          "date_of_issue": 0.99,
+          "date_of_expiry": 0.99,
+          "passport_number": 0.99,
+          "place_of_birth": 0.99,
+          "document_number": 0.97,
+          "issuing_country": 0.97
+        },
+        "overall_confidence": 0.986,
+        "extraction_method": "gemini_vision",
+        "raw_text": "RUSSIAN FEDERATION\nnnnnnnnnnn nnnnnnnnn\nPASSPORT\nH\nnnnnnnn\n\nPERSONAL DATA / nnnnnnnnnnnn nnnnnn\n\nDOCUMENT DETAILS / nnnnnnnnn nnnnnnnnn\n\nPHOTO\n\nnnnn\n\nPassport No / n nnnnnnnn\nRU7823419056\nDate of Issue / nnnn nnnnnn\n15 JUN 2015\nDate of Expiry / nnnn nnnnnnnn\n14 JUN 2025\nIssuing Authority\nMVD MOSCOW\n\nSignature / nnnnnnn\nV. Petrov\n\nSurname / nnnnnnn\nPETROV\nGiven Names / nnn\nVIKTOR ALEKSEYEVICH\nNationality / nnnnnnnnnnn\nRUSSIAN\nDate of Birth / nnnn nnnnnnnn\n12 MAR 1978\nSex / nnn\nM\nPlace of Birth / nnnnn nnnnnnnn\nMOSCOW, RUSSIA\n\nS P E CIM E N\n\nENTRY\n\nDUBAI INTERNATIONAL\n\n14 NOV 2022\n\nUAE BORDER CONTROL\n\nTRANSIT\nNICOSIA INTL\n02 FEB 2023\n\nMACHINE READABLE ZONE\n\nP<RUSAPETROV<<VIKTOR<ALEKSEYEVICH<<<<<<<<<<<<<\n\nRU7823419056RUS7803125M2506144<<<<<<<<<<<<<<<4\n\nTHIS IS A TEST DOCUMENT FOR SMARTKYC SYSTEM EVALUATION PURPOSES ONLY",
+        "document_quality": "good",
+        "notes": ""
+      },
+      "id": "i5qleddqde"
+    },
+    {
+      "role": "bot",
+      "text": "Launching investigation…",
+      "id": "8zj88qp1gq8"
+    },
+    {
+      "role": "bot",
+      "text": "Investigation launched for **PETROV VIKTOR ALEKSEYEVICH** (KYC-2026-EB62). Agents are running — click \"Open case →\" to follow along.",
+      "caseCard": {
+        "caseId": "e381e8d6-ec52-4653-b543-399e78b2a8ed",
+        "caseNumber": "KYC-2026-EB62",
+        "subjectName": "PETROV VIKTOR ALEKSEYEVICH",
+        "status": "pending"
+      },
+      "id": "p8b46y91f3r"
+    }
+  ],
+  "cases_created": [
+    "e381e8d6-ec52-4653-b543-399e78b2a8ed"
+  ]
+}
